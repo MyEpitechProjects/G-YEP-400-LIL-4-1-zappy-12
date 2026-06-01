@@ -1,0 +1,12 @@
+##
+## EPITECH PROJECT, 2026
+## G-YEP-400 : .gitingore
+## File description:
+## ignoring some files
+
+*.o
+zappy_gui_test
+zappy_server_test
+zappy_ai
+zappy_server
+zappy_gui

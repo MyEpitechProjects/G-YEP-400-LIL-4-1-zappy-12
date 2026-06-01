@@ -7,7 +7,11 @@
 ## main ai file
 ##
 
+# Standard lib import
 import sys
+
+# Function from other file import
+from ai.server_connection import first_connection
 
 def main(arguments): #arguments -> sys.argv (char **av C/C++ equivalent)
     """Main function : parse arguments"""
@@ -42,6 +46,21 @@ def main(arguments): #arguments -> sys.argv (char **av C/C++ equivalent)
     print(f"port : {port}")
     print(f"name : {name}")
     print(f"machine : {machine}")
+
+    # Connection to server
+    client_socket, socket_file, dimensions = first_connection(port, name, machine)
+
+    print("AI connected. Waiting... (Press Ctrl+C to quit)")
+    try:
+        while True:
+            pass #will be updated, with AI behavior
+    except KeyboardInterrupt:
+        # Avoid red error
+        print("\nDisconnection requested (Ctrl+C).")
+    finally:
+        socket_file.close()
+        client_socket.close()
+        print("Closing the AI client.")
     
 if __name__ == "__main__":
     main(sys.argv)

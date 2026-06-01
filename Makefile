@@ -27,6 +27,7 @@ $(NAME_AI):
 
 clean:
 	rm -f $(OBJ_SERVER)
+	rm -rf ai/__pycache__
 
 fclean: clean
 	rm -f $(NAME_SERVER) $(NAME_AI)
