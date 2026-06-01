@@ -9,10 +9,12 @@
 
 # Standard lib import
 import sys
+import random
 
 # Function from other file import
 from ai.server_connection import first_connection
 from ai.trantorian import Trantorian
+from ai.send_action import send_move_up_one_tile, send_turn_90_left, send_turn_90_right, send_look
 
 def main(arguments): #arguments -> sys.argv (char **av C/C++ equivalent)
     """Main function : parse arguments"""
@@ -63,9 +65,43 @@ def main(arguments): #arguments -> sys.argv (char **av C/C++ equivalent)
     print(f"Level: {trantorian.level}")
     print(f"Food : {trantorian.inventory['food']}")
     print("AI connected. Waiting... (Press Ctrl+C to quit)")
+
     try:
+        action_costs = {"Forward": 7, "Right": 7, "Left": 7, "Look": 7}
         while True:
-            pass #will be updated, with AI behavior
+
+            # Choose and execute random action
+            action = random.choice(["Forward","Right","Left","Look"])
+
+            # Update local estimated time before sending
+            trantorian.estimated_time_survived += action_costs[action]
+
+            if action == "Forward":
+                send_move_up_one_tile(socket_file)
+            elif action == "Right":
+                send_turn_90_right(socket_file)
+            elif action == "Left":
+                send_turn_90_left(socket_file)
+            elif action == "Look":
+                send_look(socket_file)
+            
+            # Update pending command counter
+            trantorian.pending_commands += 1
+
+            # Wait and read server response
+            response = socket_file.readline().strip()
+
+            # Process the response
+            trantorian.pending_commands -= 1
+            
+            time_display = f"{trantorian.estimated_time_survived:>4}/1260"
+            buffer_display = f"{trantorian.pending_commands}/10"
+            print(f"[Time: {time_display}] [Buffer: {buffer_display}] {action:<7} -> {response}")
+
+            if response == "dead":
+                print("The trantorian is dead")
+                break
+            
     except KeyboardInterrupt:
         # Avoid red error
         print("\nDisconnection requested (Ctrl+C).")
