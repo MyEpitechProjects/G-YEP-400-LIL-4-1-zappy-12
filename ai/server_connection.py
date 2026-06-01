@@ -45,7 +45,7 @@ def first_connection(port: int, name: str, machine: str):
         dimensions = socket_file.readline().strip()
         print(f"World dimensions: {dimensions}")
 
-        return client_socket, socket_file, dimensions
+        return client_socket, socket_file, dimensions, int(client_num)
 
     except Exception as e:
         print(f"An error occurred: {e}", file=sys.stderr)

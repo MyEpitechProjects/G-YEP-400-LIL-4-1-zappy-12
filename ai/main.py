@@ -12,6 +12,7 @@ import sys
 
 # Function from other file import
 from ai.server_connection import first_connection
+from ai.trantorian import Trantorian
 
 def main(arguments): #arguments -> sys.argv (char **av C/C++ equivalent)
     """Main function : parse arguments"""
@@ -53,8 +54,14 @@ def main(arguments): #arguments -> sys.argv (char **av C/C++ equivalent)
     print(f"machine : {machine}")
 
     # Connection to server
-    client_socket, socket_file, dimensions = first_connection(port, name, machine)
+    client_socket, socket_file, dimensions, client_num = first_connection(port, name, machine)
+    width_str, height_str = dimensions.split()
 
+    trantorian = Trantorian(team_name=name, map_width=int(width_str), map_height=int(height_str), initial_slots=client_num)
+
+    print(f"Trantorian initialized.")
+    print(f"Level: {trantorian.level}")
+    print(f"Food : {trantorian.inventory['food']}")
     print("AI connected. Waiting... (Press Ctrl+C to quit)")
     try:
         while True:
