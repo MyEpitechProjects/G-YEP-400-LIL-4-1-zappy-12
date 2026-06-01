@@ -21,7 +21,7 @@ def main(arguments): #arguments -> sys.argv (char **av C/C++ equivalent)
     machine = "localhost"
 
     if len(arguments) == 1:
-        print("USAGE: ./zappy_ai -p port -n name -h machine")
+        print("USAGE: ./zappy_ai -p port -n name -h machine", file=sys.stderr)
         sys.exit(84)
     elif len(arguments) == 2 and arguments[1] == "--help":
         print("USAGE: ./zappy_ai -p port -n name -h machine")
@@ -40,7 +40,12 @@ def main(arguments): #arguments -> sys.argv (char **av C/C++ equivalent)
         name = arguments[4]
         machine = arguments[6]
     else:
-        print("USAGE: ./zappy_ai -p port -n name -h machine")
+        print("USAGE: ./zappy_ai -p port -n name -h machine", file=sys.stderr)
+        sys.exit(84)
+
+    # Graphic team name verification
+    if name == "GRAPHIC":
+        print("Error: 'GRAPHIC' is a reserved team name for the GUI. Try with an other name.", file=sys.stderr)
         sys.exit(84)
 
     print(f"port : {port}")
