@@ -1,0 +1,10 @@
+Exemple of commands - Not a documentation
+
+Launch a server
+./zappy_server -p 4242 -x 50 -y 50 -n pomme banane cerise -c 50 -f 100
+
+Launch a gui
+./zappy_gui -p 4242 -h localhost
+
+Launch ai
+./zappy_ai -p 4242 -n pomme -h localhost
