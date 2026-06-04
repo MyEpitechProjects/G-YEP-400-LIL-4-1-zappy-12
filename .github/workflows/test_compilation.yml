@@ -1,0 +1,96 @@
+##
+## EPITECH PROJECT, 2026
+## G-YEP-400 : .github/workflows/test_compilation.yml
+## File description:
+## Test if the project compile in official environnement
+##
+
+name: Test compilation
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  compilation:
+    name: Compile in Epitech Docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Pull Epitech Docker image
+        run: docker pull epitechcontent/epitest-docker:latest
+
+      - name: Run compilation checks
+        run: |
+          docker run --rm \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            epitechcontent/epitest-docker:latest \
+            bash -lc '
+              set -e
+
+              check_executable() {
+                if [ ! -x "$1" ]; then
+                  echo "::error::$1 is missing or not executable"
+                  exit 1
+                fi
+              }
+
+              check_not_exists() {
+                if [ -e "$1" ]; then
+                  echo "::error::$1 should not exist"
+                  exit 1
+                fi
+              }
+
+              check_no_temp_files() {
+                found=$(find . \( \
+                  -name "*.o" -o \
+                  -name "*.gcno" -o \
+                  -name "*.gcda" -o \
+                  -name "*~" -o \
+                  -name "#*#" -o \
+                  -name "*.tmp" \
+                \) -print -quit)
+
+                if [ -n "$found" ]; then
+                  echo "::error::temporary/object file still exists: $found"
+                  exit 1
+                fi
+              }
+
+              echo "Step 1 : make zappy_server"
+              make zappy_server
+              check_executable ./zappy_server
+
+              echo "Step 2 : make zappy_ai"
+              make zappy_ai
+              check_executable ./zappy_ai
+
+              echo "Step 3 : make fclean"
+              make fclean
+              check_not_exists ./zappy_server
+              check_not_exists ./zappy_ai
+              check_no_temp_files
+
+              echo "Step 4 : make all"
+              make all
+              check_executable ./zappy_server
+              check_executable ./zappy_ai
+
+              echo "Step 5 : make clean"
+              make clean
+              check_no_temp_files
+              check_executable ./zappy_server
+              check_executable ./zappy_ai
+
+              echo "Step 6 : make fclean"
+              make fclean
+              check_not_exists ./zappy_server
+              check_not_exists ./zappy_ai
+              check_no_temp_files
+
+              echo "All compilation checks passed."'

@@ -10,7 +10,7 @@ CC = epiclang
 NAME_SERVER = zappy_server
 NAME_AI = zappy_ai
 
-CFLAGS = -Wall -Wextra -I server/include
+CFLAGS = -Wall -Wextra -Werror -I server/include
 
 SRC_SERVER = server/src/main.c
 
