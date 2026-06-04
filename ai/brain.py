@@ -35,6 +35,26 @@ def parse_inventory(response):
         inventory[resource_name] = quantity
     return inventory
 
+def parse_look(response):
+    if response == "dead":
+        return None
+    list_tiles = []
+    response = response[1:-1]
+    raw_tiles = response.split(",")
+    for raw_tile in raw_tiles:
+        tile = {}
+        raw_tile = raw_tile.strip()
+        if raw_tile == "":
+            list_tiles.append(tile)
+            continue
+        objects = raw_tile.split()
+        for object_name in objects:
+            if object_name not in tile:
+                tile[object_name] = 0
+            tile[object_name] += 1
+        list_tiles.append(tile)
+    return list_tiles
+
 def can_start_incantation(level, inventory, vision):
     return False
 
@@ -58,6 +78,33 @@ def choose_state(inventory, vision, level):
         return COLLECT_STONE
     return EXPLORE
 
+def update_memory(trantorian, action, response, object_name=None):
+    if response == "dead":
+        return False
+
+    if action == "Inventory":
+        inventory = parse_inventory(response)
+        if inventory is not None:
+            trantorian.inventory = inventory
+    elif action == "Look":
+        vision = parse_look(response)
+        if vision is not None:
+            trantorian.vision = vision
+    elif action == "Connect_nbr":
+        if response.isdigit():
+            trantorian.available_slots = int(response)
+    elif action == "Incantation":
+        if "Current level:" in response:
+            level = response.split("Current level:")[-1].strip()
+            if level.isdigit():
+                trantorian.level = int(level)
+        trantorian.vision = []
+    elif action in ["Forward", "Right", "Left", "Take", "Set", "Eject"]:
+        trantorian.vision = []
+    elif action == "Fork":
+        trantorian.available_slots = None
+    return True
+
 def run_ai(trantorian: Trantorian, socket_file):
     """Main loop for the random walker AI."""
     
@@ -68,8 +115,7 @@ def run_ai(trantorian: Trantorian, socket_file):
         action = random.choice(actions)
         object_name = None
 
-        # Send Action
-    
+        # Send Action    
         if action == "Forward":
             send_move_up_one_tile(socket_file)
         elif action == "Right":
