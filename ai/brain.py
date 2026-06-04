@@ -16,6 +16,25 @@ PREPARE_RITUAL = "PREPARE_RITUAL"
 COLLECT_STONE = "COLLECT_STONE"
 EXPLORE = "EXPLORE"
 
+def parse_inventory(response):
+    """Transform a string into a dictionary (inventory)"""
+
+    inventory = {}
+
+    if response == "dead":
+        return None
+    response = response[1:-1]
+    items = response.split(",")
+    for item in items:
+        item = item.strip()
+        parts = item.split()
+        if len(parts) != 2:
+            continue
+        resource_name = parts[0]
+        quantity = int(parts[1])
+        inventory[resource_name] = quantity
+    return inventory
+
 def can_start_incantation(level, inventory, vision):
     return False
 
