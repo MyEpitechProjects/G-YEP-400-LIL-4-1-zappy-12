@@ -5,9 +5,6 @@
 ## Send action to the server
 ##
 
-import sys
-import socket
-
 def send_move_up_one_tile(socket_file):
     socket_file.write("Forward\n")
     socket_file.flush()

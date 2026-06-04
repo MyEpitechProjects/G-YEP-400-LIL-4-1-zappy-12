@@ -9,7 +9,6 @@
 
 # Standard lib import
 import sys
-import random
 
 # Function from other file import
 from ai.args_parser import parse_arguments
@@ -32,7 +31,6 @@ def main(arguments): #arguments -> sys.argv (char **av C/C++ equivalent)
 
     print(f"Trantorian initialized.")
     print(f"Level: {trantorian.level}")
-    print(f"Food : {trantorian.inventory['food']}")
     print("AI connected. Waiting... (Press Ctrl+C to quit)")
 
     # Start AI loop

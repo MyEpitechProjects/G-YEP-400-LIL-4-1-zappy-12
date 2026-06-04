@@ -16,4 +16,3 @@ class Trantorian:
         self.inventory = {"food": 10, "linemate": 0, "deraumere": 0, "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0}
         self.available_slots = initial_slots
         self.pending_commands = 0
-        self.life_time_units = self.inventory["food"] * 126
