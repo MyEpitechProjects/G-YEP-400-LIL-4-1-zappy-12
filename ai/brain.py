@@ -7,13 +7,37 @@
 
 import random
 from ai.trantorian import Trantorian
-from ai.send_action import (
-    send_move_up_one_tile, send_turn_90_left, send_turn_90_right,
-    send_look, send_inventory, send_broadcast_text,
-    send_number_of_team_unused, send_fork_a_player,
-    eject_a_player_from_this_tile, send_take_object,
-    send_set_object_down, send_start_incantation,
-)
+from ai.send_action import (send_move_up_one_tile, send_turn_90_left, send_turn_90_right, send_look, send_inventory, send_broadcast_text, send_number_of_team_unused, send_fork_a_player, eject_a_player_from_this_tile, send_take_object, send_set_object_down, send_start_incantation)
+
+FOOD_LOW_LIMIT = 5
+SURVIVE = "SURVIVE"
+INCANT = "INCANT"
+PREPARE_RITUAL = "PREPARE_RITUAL"
+COLLECT_STONE = "COLLECT_STONE"
+EXPLORE = "EXPLORE"
+
+def can_start_incantation(level, inventory, vision):
+    return False
+
+def has_required_stones_in_inventory(level, inventory):
+    return False
+
+def missing_stone_visible(level, inventory, vision):
+    return False
+
+def choose_state(inventory, vision, level):
+    """Choose the current AI state from known inventory and vision."""
+    food = inventory.get("food", 0)
+
+    if food <= FOOD_LOW_LIMIT:
+        return SURVIVE
+    if can_start_incantation(level, inventory, vision):
+        return INCANT
+    if has_required_stones_in_inventory(level, inventory):
+        return PREPARE_RITUAL
+    if missing_stone_visible(level, inventory, vision):
+        return COLLECT_STONE
+    return EXPLORE
 
 def run_ai(trantorian: Trantorian, socket_file):
     """Main loop for the random walker AI."""
