@@ -80,6 +80,18 @@ def has_required_stones_in_inventory(level, inventory):
             return False
     return True
 
+def get_missing_stones(level, inventory):
+    level_to_reach = level + 1
+    missing = {}
+    if level_to_reach not in REQUIREMENTS:
+        return missing
+    requirements = REQUIREMENTS[level_to_reach]
+    for stone in STONES:
+        amount = requirements.get(stone, 0) - inventory.get(stone, 0)
+        if amount > 0:
+            missing[stone] = amount
+    return missing
+
 def missing_stone_visible(level, inventory, vision):
     return False
 
