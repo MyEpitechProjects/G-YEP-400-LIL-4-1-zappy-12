@@ -25,6 +25,8 @@ REQUIREMENTS = {
     7: {"players": 6, "linemate": 1, "deraumere": 2, "sibur": 3, "mendiane": 0, "phiras": 1, "thystame": 0},
     8: {"players": 6, "linemate": 2, "deraumere": 2, "sibur": 2, "mendiane": 2, "phiras": 2, "thystame": 1}
 }
+STONES = ["linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"]
+
 
 def parse_inventory(response):
     """Transform a string into a dictionary (inventory)"""
@@ -69,7 +71,14 @@ def can_start_incantation(level, inventory, vision):
     return False
 
 def has_required_stones_in_inventory(level, inventory):
-    return False
+    level_to_reach = level + 1
+    if level_to_reach not in REQUIREMENTS:
+        return False
+    requirements = REQUIREMENTS[level_to_reach]
+    for stone in STONES:
+        if inventory.get(stone, 0) < requirements.get(stone, 0):
+            return False
+    return True
 
 def missing_stone_visible(level, inventory, vision):
     return False
