@@ -67,9 +67,6 @@ def parse_look(response):
         list_tiles.append(tile)
     return list_tiles
 
-def can_start_incantation(level, inventory, vision):
-    return False
-
 def has_required_stones_in_inventory(level, inventory):
     level_to_reach = level + 1
     if level_to_reach not in REQUIREMENTS:
@@ -108,6 +105,21 @@ def missing_stone_visible(level, inventory, vision):
                 return True
     return False
 
+def can_start_incantation(level, inventory, vision):
+    level_to_reach = level + 1
+    if level_to_reach not in REQUIREMENTS:
+        return False
+    if len(vision) == 0:
+        return False
+    requirements = REQUIREMENTS[level_to_reach]
+    current_tile = vision[0]
+    if current_tile.get("player", 0) < requirements.get("players", 0):
+        return False
+    for stone in STONES:
+        if current_tile.get(stone, 0) < requirements.get(stone, 0):
+            return False
+    return True
+
 def choose_state(inventory, vision, level):
     """Choose the current AI state from known inventory and vision."""
     food = inventory.get("food", 0)
@@ -125,7 +137,6 @@ def choose_state(inventory, vision, level):
 def update_memory(trantorian, action, response, object_name=None):
     if response == "dead":
         return False
-
     if action == "Inventory":
         inventory = parse_inventory(response)
         if inventory is not None:
