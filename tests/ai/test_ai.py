@@ -8,7 +8,7 @@
 ##
 
 import unittest
-from ai.brain import (parse_inventory, parse_look)
+from ai.brain import (parse_inventory, parse_look, has_required_stones_in_inventory)
 
 class TestInventoryParser(unittest.TestCase):
 
@@ -52,6 +52,20 @@ class TestLookParser(unittest.TestCase):
         response = "[ player   food ,  food   linemate , , deraumere  sibur ]"
         expected = [{"player": 1, "food": 1}, {"food": 1, "linemate": 1}, {}, {"deraumere": 1, "sibur": 1}]
         self.assertEqual(parse_look(response), expected)
+
+class TestRequiredStonesInventory(unittest.TestCase):
+
+    def test_has_required_stones_level_one_to_two(self):
+        inventory = {"food": 10, "linemate": 1, "deraumere": 0, "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0}
+        self.assertTrue(has_required_stones_in_inventory(1, inventory))
+
+    def test_has_not_required_stones_wrong_stone(self):
+        inventory = {"food": 10, "linemate": 0, "deraumere": 1, "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0}
+        self.assertFalse(has_required_stones_in_inventory(1, inventory))
+
+    def test_has_not_required_stones_missing_stone_level_two_to_three(self):
+        inventory = {"food": 10, "linemate": 1, "deraumere": 1, "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0}
+        self.assertFalse(has_required_stones_in_inventory(2, inventory))
 
 if __name__ == "__main__":
     unittest.main()
