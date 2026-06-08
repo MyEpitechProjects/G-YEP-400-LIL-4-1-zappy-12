@@ -8,7 +8,7 @@
 ##
 
 import unittest
-from ai.brain import (parse_inventory, parse_look, has_required_stones_in_inventory)
+from ai.brain import (parse_inventory, parse_look, has_required_stones_in_inventory, get_missing_stones)
 
 class TestInventoryParser(unittest.TestCase):
 

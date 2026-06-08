@@ -93,6 +93,19 @@ def get_missing_stones(level, inventory):
     return missing
 
 def missing_stone_visible(level, inventory, vision):
+    level_to_reach = level + 1
+    if level_to_reach not in REQUIREMENTS:
+        return False
+    requirements = REQUIREMENTS[level_to_reach]
+    for stone in STONES:
+        required_amount = requirements.get(stone, 0)
+        current_amount = inventory.get(stone, 0)
+        missing_amount = required_amount - current_amount
+        if missing_amount <= 0:
+            continue
+        for tile in vision:
+            if tile.get(stone, 0) > 0:
+                return True
     return False
 
 def choose_state(inventory, vision, level):
