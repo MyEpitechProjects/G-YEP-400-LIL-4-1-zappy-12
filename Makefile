@@ -29,8 +29,7 @@ $(NAME_AI):
 	chmod +x $(NAME_AI)
 
 tests_run:
-	PYTHONPATH=. $(PYTHON) -m unittest discover -s $(TESTS_DIR) -p "test_*.py" -v
-	python3 -m coverage report -m
+	PYTHONPATH=. $(PYTHON) -m coverage run --source=ai -m unittest discover -s $(TESTS_DIR) -p "test_*.py" -v
 
 clean:
 	rm -f $(OBJ_SERVER)
