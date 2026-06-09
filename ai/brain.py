@@ -214,6 +214,30 @@ def update_memory(trantorian, action, response, object_name=None):
         trantorian.available_slots = None
     return True
 
+def build_move_plan(tile_index):
+    """Build a movement plan to reach a visible tile index."""
+
+    plan = []
+    if tile_index == 0:
+        return plan
+    row = distance_from_tile_index(tile_index)
+    row_start = row * row
+    row_center = row_start + row
+    offset = tile_index - row_center
+    if offset < 0:
+        plan.append("Left")
+        for _ in range(abs(offset)):
+            plan.append("Forward")
+        plan.append("Right")
+    elif offset > 0:
+        plan.append("Right")
+        for _ in range(offset):
+            plan.append("Forward")
+        plan.append("Left")
+    for _ in range(row):
+        plan.append("Forward")
+    return plan
+
 def run_ai(trantorian: Trantorian, socket_file):
     """Run the main AI loop and communicate with the server."""
     
