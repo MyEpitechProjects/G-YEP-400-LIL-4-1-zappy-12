@@ -26,13 +26,16 @@ REQUIREMENTS = {
     8: {"players": 6, "linemate": 2, "deraumere": 2, "sibur": 2, "mendiane": 2, "phiras": 2, "thystame": 1}
 }
 STONES = ["linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"]
-
+HIGH_FOOD_PRIORITY = 100
+NORMAL_FOOD_PRIORITY = 20
+STONE_PRIORITY = 80
+DISTANCE_PENALTY = 10
+CURRENT_TILE_BONUS = 5
 
 def parse_inventory(response):
-    """Transform a string into a dictionary (inventory)"""
+    """Parse an inventory response into a resource dictionary."""
 
     inventory = {}
-
     if response == "dead":
         return None
     response = response[1:-1]
@@ -48,6 +51,8 @@ def parse_inventory(response):
     return inventory
 
 def parse_look(response):
+    """Parse a look response into a list of visible tiles."""
+
     if response == "dead":
         return None
     list_tiles = []
@@ -68,6 +73,8 @@ def parse_look(response):
     return list_tiles
 
 def has_required_stones_in_inventory(level, inventory):
+    """Check if inventory contains all stones required for next level."""
+
     level_to_reach = level + 1
     if level_to_reach not in REQUIREMENTS:
         return False
@@ -78,6 +85,8 @@ def has_required_stones_in_inventory(level, inventory):
     return True
 
 def get_missing_stones(level, inventory):
+    """Return stones missing from inventory for next incantation."""
+
     level_to_reach = level + 1
     missing = {}
     if level_to_reach not in REQUIREMENTS:
@@ -90,6 +99,8 @@ def get_missing_stones(level, inventory):
     return missing
 
 def missing_stone_visible(level, inventory, vision):
+    """Check if a missing stone is visible in current vision."""
+
     level_to_reach = level + 1
     if level_to_reach not in REQUIREMENTS:
         return False
@@ -106,6 +117,8 @@ def missing_stone_visible(level, inventory, vision):
     return False
 
 def can_start_incantation(level, inventory, vision):
+    """Check if current tile meets incantation requirements."""
+
     level_to_reach = level + 1
     if level_to_reach not in REQUIREMENTS:
         return False
@@ -120,10 +133,49 @@ def can_start_incantation(level, inventory, vision):
             return False
     return True
 
-def choose_state(inventory, vision, level):
-    """Choose the current AI state from known inventory and vision."""
-    food = inventory.get("food", 0)
+def distance_from_tile_index(tile_index):
+    """Estimate distance between player and a visible tile index."""
 
+    distance = 0
+    while (distance + 1) * (distance + 1) <= tile_index:
+        distance += 1
+    return distance
+
+def find_best_tile(vision, inventory, level):
+    """Find the most valuable visible tile for the current state."""
+
+    if len(vision) == 0:
+        return 0
+    best_tile_index = 0
+    best_score = -9999
+    level_to_reach = level + 1
+    requirements = REQUIREMENTS.get(level_to_reach, {})
+    food = inventory.get("food", 0)
+    for tile_index, tile in enumerate(vision):
+        score = 0
+        distance = distance_from_tile_index(tile_index)
+        if food <= FOOD_LOW_LIMIT:
+            score += tile.get("food", 0) * HIGH_FOOD_PRIORITY
+        else:
+            score += tile.get("food", 0) * NORMAL_FOOD_PRIORITY
+        for stone in STONES:
+            required_amount = requirements.get(stone, 0)
+            current_amount = inventory.get(stone, 0)
+            missing_amount = required_amount - current_amount
+            if missing_amount > 0:
+                score += tile.get(stone, 0) * STONE_PRIORITY
+        score -= distance * DISTANCE_PENALTY
+        if tile_index == 0:
+            score += CURRENT_TILE_BONUS
+        if score > best_score:
+            best_score = score
+            best_tile_index = tile_index
+    return best_tile_index
+
+def choose_state(inventory, vision, level):
+    """Choose the current AI state from inventory, vision and level."""
+
+    food = inventory.get("food", 0)
     if food <= FOOD_LOW_LIMIT:
         return SURVIVE
     if can_start_incantation(level, inventory, vision):
@@ -135,6 +187,8 @@ def choose_state(inventory, vision, level):
     return EXPLORE
 
 def update_memory(trantorian, action, response, object_name=None):
+    """Update trantorian memory using the last server response."""
+
     if response == "dead":
         return False
     if action == "Inventory":
@@ -161,7 +215,7 @@ def update_memory(trantorian, action, response, object_name=None):
     return True
 
 def run_ai(trantorian: Trantorian, socket_file):
-    """Main loop for the random walker AI."""
+    """Run the main AI loop and communicate with the server."""
     
     actions = ["Forward", "Right", "Left", "Look", "Inventory", "Broadcast", "Connect_nbr", "Fork", "Eject", "Take", "Set", "Incantation"]
     resources = ["food", "linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"]

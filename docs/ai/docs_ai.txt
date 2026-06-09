@@ -1,0 +1,34 @@
+Version temporaire de la documentation:
+Elle sera remplacé par une version markdown
+
+Comment fonctionne l'intelligence artificielle du trantorian
+
+1. Elle récupère les informations du serveur
+L’IA ne gère pas directement la vie du Trantorian. Le serveur reste maître du jeu. 
+L’IA envoie seulement des commandes et lit les réponses, par exemple Inventory, Look, ok, ko ou dead.
+
+2. Elle transforme les réponses en données utilisables
+parse_inventory() transforme une réponse comme : [food 10, linemate 1, sibur 0] en dictionnaire python
+parse_look() transforme une vision comme : [player food, linemate,,sibur] en liste de cases visibles avec les objets comptés.
+
+3. Elle garde une mémoire locale
+Le Trantorian stocke son inventaire connu, sa vision connue, son niveau, son état actuel, son plan d’actions et le nombre de commandes en attente.
+
+4. Elle choisit un état avec une logique Utility AI
+choose_state() décide quoi faire selon la situation :
+peu de nourriture -> SURVIVE
+incantation possible -> INCANT
+pierres en inventaire -> PREPARE_RITUAL
+pierre manquante visible -> COLLECT_STONE
+sinon -> EXPLORE
+
+5. Elle évalue les cases visibles
+find_best_tile() attribue un score à chaque case visible. Une case avec de la food devient très intéressante si l’IA a peu de nourriture. 
+Une case avec une pierre manquante devient intéressante si l’IA prépare une incantation.
+
+6. Elle prépare progressivement une stratégie
+Le but est de passer d’un comportement aléatoire à une IA qui construit un plan : observer, choisir un objectif, aller vers une case intéressante, 
+ramasser les ressources utiles, poser les pierres, puis tenter une incantation.
+
+7. Elle s’arrête uniquement si le serveur dit dead
+Comme le serveur gère la vie, l’IA ne calcule pas elle-même sa mort. Elle continue tant que la réponse serveur n’est pas dead.
