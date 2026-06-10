@@ -263,6 +263,31 @@ def build_take_plan(tile, inventory, level):
             missing_amount -= 1
     return plan
 
+def build_prepare_ritual_plan(level, inventory, current_tile):
+    """Build a plan to set required stones before incantation."""
+
+    plan = []
+    level_to_reach = level + 1
+    if level_to_reach not in REQUIREMENTS:
+        return plan
+    requirements = REQUIREMENTS[level_to_reach]
+    for stone in STONES:
+        required_amount = requirements.get(stone, 0)
+        amount_on_tile = current_tile.get(stone, 0)
+        amount_in_inventory = inventory.get(stone, 0)
+        missing_on_tile = required_amount - amount_on_tile
+        if missing_on_tile <= 0:
+            continue
+        while missing_on_tile > 0 and amount_in_inventory > 0:
+            plan.append("Set " + stone)
+            missing_on_tile -= 1
+            amount_in_inventory -= 1
+    plan.append("Look")
+    return plan
+
+def build_plan(trantorian):
+    return None
+
 def run_ai(trantorian: Trantorian, socket_file):
     """Run the main AI loop and communicate with the server."""
     
