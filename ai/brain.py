@@ -286,7 +286,48 @@ def build_prepare_ritual_plan(level, inventory, current_tile):
     return plan
 
 def build_plan(trantorian):
-    return None
+    """Build the next action plan from current AI state."""
+
+    inventory = trantorian.inventory
+    vision = trantorian.vision
+    level = trantorian.level
+    if not inventory:
+        return ["Inventory"]
+    if not vision:
+        return ["Look"]
+    state = choose_state(inventory, vision, level)
+    trantorian.state = state
+    current_tile = vision[0]
+    if state == SURVIVE:
+        take_plan = build_take_plan(current_tile, inventory, level)
+        if take_plan:
+            return take_plan
+        best_tile = find_best_tile(vision, inventory, level)
+        if best_tile != 0:
+            plan = build_move_plan(best_tile)
+            plan.append("Look")
+            return plan
+        return ["Forward", "Look"]
+    if state == INCANT:
+        return ["Incantation"]
+    if state == PREPARE_RITUAL:
+        plan = build_prepare_ritual_plan(level, inventory, current_tile)
+        if plan:
+            return plan
+        return ["Look"]
+    if state == COLLECT_STONE:
+        take_plan = build_take_plan(current_tile, inventory, level)
+        if take_plan:
+            return take_plan
+        best_tile = find_best_tile(vision, inventory, level)
+        if best_tile != 0:
+            plan = build_move_plan(best_tile)
+            plan.append("Look")
+            return plan
+        return ["Forward", "Look"]
+    if state == EXPLORE:
+        return ["Forward", "Look"]
+    return ["Look"]
 
 def run_ai(trantorian: Trantorian, socket_file):
     """Run the main AI loop and communicate with the server."""
