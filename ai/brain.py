@@ -32,6 +32,14 @@ STONE_PRIORITY = 80
 DISTANCE_PENALTY = 10
 CURRENT_TILE_BONUS = 5
 
+def send_command(socket_file, command):
+    socket_file.write(command + "\n")
+    socket_file.flush()
+
+def is_async_message(response):
+    """Ligne non sollicitée : ne correspond à AUCUNE commande envoyée."""
+    return response.startswith("message ") or response.startswith("eject:")
+
 def parse_inventory(response):
     """Parse an inventory response into a resource dictionary."""
 
@@ -331,58 +339,30 @@ def build_plan(trantorian):
 
 def run_ai(trantorian: Trantorian, socket_file):
     """Run the main AI loop and communicate with the server."""
-    
-    actions = ["Forward", "Right", "Left", "Look", "Inventory", "Broadcast", "Connect_nbr", "Fork", "Eject", "Take", "Set", "Incantation"]
-    resources = ["food", "linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"]
 
+    plan = []
     while True:
-        action = random.choice(actions)
-        object_name = None
-
-        # Send Action    
-        if action == "Forward":
-            send_move_up_one_tile(socket_file)
-        elif action == "Right":
-            send_turn_90_right(socket_file)
-        elif action == "Left":
-            send_turn_90_left(socket_file)
-        elif action == "Look":
-            send_look(socket_file)
-        elif action == "Inventory":
-            send_inventory(socket_file)
-        elif action == "Broadcast":
-            send_broadcast_text(socket_file, "random message")
-        elif action == "Connect_nbr":
-            send_number_of_team_unused(socket_file)
-        elif action == "Fork":
-            send_fork_a_player(socket_file)
-        elif action == "Eject":
-            eject_a_player_from_this_tile(socket_file)
-        elif action == "Take":
-            object_name = random.choice(resources)
-            send_take_object(socket_file, object_name)
-        elif action == "Set":
-            object_name = random.choice(resources)
-            send_set_object_down(socket_file, object_name)
-        elif action == "Incantation":
-            send_start_incantation(socket_file)
-
+        if not plan:
+            plan = build_plan(trantorian)
+        command = plan.pop(0)
+        parts = command.split()
+        verb = parts[0]
+        if len(parts) > 1:
+            object_name = parts[1] 
+        else:
+            object_name = None
+        send_command(socket_file, command)
         trantorian.pending_commands += 1
-
-        # Read response
         response = socket_file.readline().strip()
-
-        if action == "Incantation" and response == "Elevation underway":
+        while is_async_message(response):
+            print(f"[async] {response}")
+            response = socket_file.readline().strip()
+        if verb == "Incantation" and response == "Elevation underway":
             second_response = socket_file.readline().strip()
             response = f"{response} / {second_response}"
-
-
         trantorian.pending_commands -= 1
-        
-        # Display and death check
-        buffer_display = f"{trantorian.pending_commands}/10"
-        print(f"[Buffer: {buffer_display}] {action:<11} -> {response}")
-
+        print(f"[Buffer: {trantorian.pending_commands}/10] {verb:<11} -> {response}")
         if response == "dead":
             print("The trantorian is dead")
             break
+        update_memory(trantorian, verb, response, object_name)
