@@ -238,6 +238,31 @@ def build_move_plan(tile_index):
         plan.append("Forward")
     return plan
 
+def build_take_plan(tile, inventory, level):
+    """Build a plan to take useful resources from current tile."""
+
+    plan = []
+    if len(tile) == 0:
+        return plan
+    for _ in range(tile.get("food", 0)):
+        plan.append("Take food")
+    level_to_reach = level + 1
+    if level_to_reach not in REQUIREMENTS:
+        return plan
+    requirements = REQUIREMENTS[level_to_reach]
+    for stone in STONES:
+        required_amount = requirements.get(stone, 0)
+        current_amount = inventory.get(stone, 0)
+        missing_amount = required_amount - current_amount
+        if missing_amount <= 0:
+            continue
+        available_amount = tile.get(stone, 0)
+        while available_amount > 0 and missing_amount > 0:
+            plan.append("Take " + stone)
+            available_amount -= 1
+            missing_amount -= 1
+    return plan
+
 def run_ai(trantorian: Trantorian, socket_file):
     """Run the main AI loop and communicate with the server."""
     
