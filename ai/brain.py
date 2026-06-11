@@ -216,6 +216,14 @@ def update_memory(trantorian, action, response, object_name=None):
             if level.isdigit():
                 trantorian.level = int(level)
         trantorian.vision = []
+    elif action == "Take":
+        if response == "ok" and object_name:
+            trantorian.inventory[object_name] = trantorian.inventory.get(object_name, 0) + 1
+        trantorian.vision = []
+    elif action == "Set":
+        if response == "ok" and object_name:
+            trantorian.inventory[object_name] = max(0, trantorian.inventory.get(object_name, 0) - 1)
+        trantorian.vision = []
     elif action in ["Forward", "Right", "Left", "Take", "Set", "Eject"]:
         trantorian.vision = []
     elif action == "Fork":
@@ -341,9 +349,14 @@ def run_ai(trantorian: Trantorian, socket_file):
     """Run the main AI loop and communicate with the server."""
 
     plan = []
+    since_inventory = 0
     while True:
         if not plan:
-            plan = build_plan(trantorian)
+            if since_inventory >= 20:
+                plan = ["Inventory"]
+                since_inventory = 0
+            else:
+                plan = build_plan(trantorian)
         command = plan.pop(0)
         parts = command.split()
         verb = parts[0]
@@ -366,3 +379,4 @@ def run_ai(trantorian: Trantorian, socket_file):
             print("The trantorian is dead")
             break
         update_memory(trantorian, verb, response, object_name)
+        since_inventory += 1
