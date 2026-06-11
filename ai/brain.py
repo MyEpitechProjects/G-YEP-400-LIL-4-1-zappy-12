@@ -42,10 +42,29 @@ def is_async_message(response):
 def is_incantation_event(line):
     return line == "Elevation underway" or line.startswith("Current level:")
 
+def parse_broadcast(line):
+    """Parse 'message K, text' into (direction, text). None if malformed."""
+
+    if not line.startswith("message "):
+        return None
+    body = line[len("message "):]
+    if "," not in body:
+        return None
+    direction_str, text = body.split(",", 1)
+    direction_str = direction_str.strip()
+    text = text.strip()
+    if not direction_str.isdigit():
+        return None
+    return int(direction_str), text
+
 def read_response(socket_file, trantorian, expecting_incantation):
     while True:
         line = socket_file.readline().strip()
         if is_async_message(line):
+            if line.startswith("message "):
+                broadcast = parse_broadcast(line)
+                if broadcast is not None:
+                    trantorian.last_broadcast = broadcast
             print(f"[async] {line}")
             continue
         if not expecting_incantation and is_incantation_event(line):

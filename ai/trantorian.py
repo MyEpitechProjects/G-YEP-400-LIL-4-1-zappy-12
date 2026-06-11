@@ -20,4 +20,5 @@ class Trantorian:
         self.last_action = None
         self.last_object = None
         self.state = "EXPLORE"
+        self.last_brodcast = None
     
