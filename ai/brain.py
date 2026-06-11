@@ -336,6 +336,44 @@ def build_prepare_ritual_plan(level, inventory, current_tile):
     plan.append("Look")
     return plan
 
+def moves_toward_sound(direction):
+    """SOUND direction (0-8) -> turn towards the source then move forward."""
+
+    if direction == 1:
+        return ["Forward"]
+    if direction in (2, 3, 4):
+        return ["Left", "Forward"]
+    if direction == 5:
+        return ["Left", "Left", "Forward"]
+    if direction in (6, 7, 8):
+        return ["Right", "Forward"]
+    return []
+
+def parse_gather_call(text):
+    """'team level token' -> (team, level, token) or None."""
+    parts = text.split()
+    if len(parts) != 3 or not parts[1].isdigit() or not parts[2].isdigit():
+        return None
+    return parts[0], int(parts[1]), int(parts[2])
+
+def build_gather_plan(trantorian):
+    """Makes a call and remains fixed (anchor), or converges to a stronger anchor."""
+
+    level = trantorian.level
+    token = trantorian.gather_token
+    call = f"{trantorian.team_name} {level} {token}"
+    broadcast = trantorian.last_broadcast
+    if broadcast is not None:
+        direction, text = broadcast
+        parsed = parse_gather_call(text)
+        if parsed is not None:
+            other_team, other_level, other_token = parsed
+            if (other_team == trantorian.team_name and other_level == level
+                    and direction != 0 and other_token > token):
+                trantorian.last_broadcast = None
+                return moves_toward_sound(direction) + ["Look"]
+    return ["Broadcast " + call, "Look"]
+
 def build_plan(trantorian):
     """Build the next action plan from current AI state."""
 
@@ -379,7 +417,7 @@ def build_plan(trantorian):
     if state == EXPLORE:
         return ["Forward", "Look"]
     if state == GATHER:
-        return ["Forward", "Look"]
+        return build_gather_plan(trantorian)
     return ["Look"]
 
 def run_ai(trantorian: Trantorian, socket_file):

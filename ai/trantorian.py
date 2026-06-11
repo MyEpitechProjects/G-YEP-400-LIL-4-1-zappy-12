@@ -5,6 +5,8 @@
 ## Trantorian class
 ##
 
+import random
+
 class Trantorian:
 
     def __init__(self, team_name: str, map_width: int, map_height: int, initial_slots: int):
@@ -20,5 +22,6 @@ class Trantorian:
         self.last_action = None
         self.last_object = None
         self.state = "EXPLORE"
-        self.last_brodcast = None
+        self.last_broadcast = None
+        self.gather_token = random.randint(0, 999999)
     
