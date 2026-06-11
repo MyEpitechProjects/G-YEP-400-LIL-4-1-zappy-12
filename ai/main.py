@@ -28,6 +28,9 @@ def main(arguments): #arguments -> sys.argv (char **av C/C++ equivalent)
 
     # Create a trantorian
     trantorian = Trantorian(team_name=name, map_width=int(width_str), map_height=int(height_str), initial_slots=client_num)
+    trantorian.port = port
+    trantorian.machine = machine
+    trantorian.binary = sys.argv[0]
 
     print(f"Trantorian initialized.")
     print(f"Level: {trantorian.level}")

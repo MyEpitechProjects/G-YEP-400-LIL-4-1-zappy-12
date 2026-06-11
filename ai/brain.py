@@ -5,31 +5,10 @@
 ## AI logic and main loop
 ##
 
-from ai.trantorian import Trantorian
+import subprocess
 
-FOOD_LOW_LIMIT = 5
-SURVIVE = "SURVIVE"
-INCANT = "INCANT"
-PREPARE_RITUAL = "PREPARE_RITUAL"
-COLLECT_STONE = "COLLECT_STONE"
-EXPLORE = "EXPLORE"
-GATHER = "GATHER"
-# requirements dict with the level to be reached  : nb_players - linemate - deraumere - sibur - mendiane - phiras - thystame
-REQUIREMENTS = {
-    2: {"players": 1, "linemate": 1, "deraumere": 0, "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0},
-    3: {"players": 2, "linemate": 1, "deraumere": 1, "sibur": 1, "mendiane": 0, "phiras": 0, "thystame": 0},
-    4: {"players": 2, "linemate": 2, "deraumere": 0, "sibur": 1, "mendiane": 0, "phiras": 2, "thystame": 0},
-    5: {"players": 4, "linemate": 1, "deraumere": 1, "sibur": 2, "mendiane": 0, "phiras": 1, "thystame": 0},
-    6: {"players": 4, "linemate": 1, "deraumere": 2, "sibur": 1, "mendiane": 3, "phiras": 0, "thystame": 0},
-    7: {"players": 6, "linemate": 1, "deraumere": 2, "sibur": 3, "mendiane": 0, "phiras": 1, "thystame": 0},
-    8: {"players": 6, "linemate": 2, "deraumere": 2, "sibur": 2, "mendiane": 2, "phiras": 2, "thystame": 1}
-}
-STONES = ["linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"]
-HIGH_FOOD_PRIORITY = 100
-NORMAL_FOOD_PRIORITY = 20
-STONE_PRIORITY = 80
-DISTANCE_PENALTY = 10
-CURRENT_TILE_BONUS = 5
+from ai.trantorian import Trantorian
+from ai.variables import FOOD_LOW_LIMIT, SURVIVE, INCANT, PREPARE_RITUAL, COLLECT_STONE, EXPLORE, GATHER, REQUIREMENTS, STONES, HIGH_FOOD_PRIORITY, NORMAL_FOOD_PRIORITY, STONE_PRIORITY, DISTANCE_PENALTY, CURRENT_TILE_BONUS, COMFORTABLE_FOOD, FORK_COOLDOWN
 
 def send_command(socket_file, command):
     socket_file.write(command + "\n")
@@ -351,7 +330,7 @@ def moves_toward_sound(direction):
 
 def parse_gather_call(text):
     """'team level token' -> (team, level, token) or None."""
-    parts = text.split()
+    parts = text.split(":")
     if len(parts) != 3 or not parts[1].isdigit() or not parts[2].isdigit():
         return None
     return parts[0], int(parts[1]), int(parts[2])
@@ -361,7 +340,7 @@ def build_gather_plan(trantorian):
 
     level = trantorian.level
     token = trantorian.gather_token
-    call = f"{trantorian.team_name} {level} {token}"
+    call = f"{trantorian.team_name}:{level}:{token}"
     broadcast = trantorian.last_broadcast
     if broadcast is not None:
         direction, text = broadcast
@@ -373,6 +352,20 @@ def build_gather_plan(trantorian):
                 trantorian.last_broadcast = None
                 return moves_toward_sound(direction) + ["Look"]
     return ["Broadcast " + call, "Look"]
+
+def should_reproduce(trantorian):
+    """Fork only if ood is comfortable and cooldown done"""
+
+    food = trantorian.inventory.get("food", 0)
+    return food >= COMFORTABLE_FOOD and trantorian.actions_since_fork >= FORK_COOLDOWN
+
+def child_command(trantorian):
+    return [trantorian.binary, "-p", str(trantorian.port), "-n", trantorian.team_name, "-h", trantorian.machine]
+
+def spawn_child(trantorian):
+    """Launch a new client to occupy the egg that has just been laid"""
+
+    subprocess.Popen(child_command(trantorian), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 def build_plan(trantorian):
     """Build the next action plan from current AI state."""
@@ -387,6 +380,8 @@ def build_plan(trantorian):
     state = choose_state(inventory, vision, level)
     trantorian.state = state
     current_tile = vision[0]
+    if state in (EXPLORE, GATHER) and should_reproduce(trantorian):
+        return ["Fork"]
     if state == SURVIVE:
         take_plan = build_take_plan(current_tile, inventory, level)
         if take_plan:
@@ -451,4 +446,9 @@ def run_ai(trantorian: Trantorian, socket_file):
             print("The trantorian is dead")
             break
         update_memory(trantorian, verb, response, object_name)
+        if verb == "Fork":
+            trantorian.actions_since_fork = 0
+            if response == "ok":
+                spawn_child(trantorian)
         since_inventory += 1
+        trantorian.actions_since_fork += 1

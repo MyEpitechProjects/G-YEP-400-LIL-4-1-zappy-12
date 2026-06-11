@@ -24,4 +24,5 @@ class Trantorian:
         self.state = "EXPLORE"
         self.last_broadcast = None
         self.gather_token = random.randint(0, 999999)
+        self.actions_since_fork = 0
     
