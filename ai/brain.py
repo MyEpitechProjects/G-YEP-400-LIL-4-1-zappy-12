@@ -5,9 +5,7 @@
 ## AI logic and main loop
 ##
 
-import random
 from ai.trantorian import Trantorian
-from ai.send_action import (send_move_up_one_tile, send_turn_90_left, send_turn_90_right, send_look, send_inventory, send_broadcast_text, send_number_of_team_unused, send_fork_a_player, eject_a_player_from_this_tile, send_take_object, send_set_object_down, send_start_incantation)
 
 FOOD_LOW_LIMIT = 5
 SURVIVE = "SURVIVE"
@@ -111,20 +109,6 @@ def has_required_stones_in_inventory(level, inventory):
         if inventory.get(stone, 0) < requirements.get(stone, 0):
             return False
     return True
-
-def get_missing_stones(level, inventory):
-    """Return stones missing from inventory for next incantation."""
-
-    level_to_reach = level + 1
-    missing = {}
-    if level_to_reach not in REQUIREMENTS:
-        return missing
-    requirements = REQUIREMENTS[level_to_reach]
-    for stone in STONES:
-        amount = requirements.get(stone, 0) - inventory.get(stone, 0)
-        if amount > 0:
-            missing[stone] = amount
-    return missing
 
 def missing_stone_visible(level, inventory, vision):
     """Check if a missing stone is visible in current vision."""
@@ -256,7 +240,7 @@ def update_memory(trantorian, action, response, object_name=None):
         if response == "ok" and object_name:
             trantorian.inventory[object_name] = max(0, trantorian.inventory.get(object_name, 0) - 1)
         trantorian.vision = []
-    elif action in ["Forward", "Right", "Left", "Take", "Set", "Eject"]:
+    elif action in ["Forward", "Right", "Left", "Eject"]:
         trantorian.vision = []
     elif action == "Fork":
         trantorian.available_slots = None

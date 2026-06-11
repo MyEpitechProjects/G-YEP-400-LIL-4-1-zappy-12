@@ -4,7 +4,7 @@ Launch a server
 ./zappy_server -p 4242 -x 10 -y 10 -n pomme banane cerise -c 50 -f 100
 
 Launch a gui
-./zappy_gui -p 4242 -h localhost
+./zappy_gui_test -p 4242 -h localhost
 
 Launch ai
 ./zappy_ai -p 4242 -n pomme -h localhost
