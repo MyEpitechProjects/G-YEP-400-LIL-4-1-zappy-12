@@ -15,6 +15,7 @@ INCANT = "INCANT"
 PREPARE_RITUAL = "PREPARE_RITUAL"
 COLLECT_STONE = "COLLECT_STONE"
 EXPLORE = "EXPLORE"
+GATHER = "GATHER"
 # requirements dict with the level to be reached  : nb_players - linemate - deraumere - sibur - mendiane - phiras - thystame
 REQUIREMENTS = {
     2: {"players": 1, "linemate": 1, "deraumere": 0, "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0},
@@ -37,8 +38,27 @@ def send_command(socket_file, command):
     socket_file.flush()
 
 def is_async_message(response):
-    """Ligne non sollicitée : ne correspond à AUCUNE commande envoyée."""
+    """Unsolicited line: does not correspond to ANY order sent."""
     return response.startswith("message ") or response.startswith("eject:")
+
+def is_incantation_event(line):
+    return line == "Elevation underway" or line.startswith("Current level:")
+
+def read_response(socket_file, trantorian, expecting_incantation):
+    while True:
+        line = socket_file.readline().strip()
+        if is_async_message(line):
+            print(f"[async] {line}")
+            continue
+        if not expecting_incantation and is_incantation_event(line):
+            if line.startswith("Current level:"):
+                level = line.split("Current level:")[-1].strip()
+                if level.isdigit():
+                    trantorian.level = int(level)
+                trantorian.vision = []
+            print(f"[async] {line}")
+            continue
+        return line
 
 def parse_inventory(response):
     """Parse an inventory response into a resource dictionary."""
@@ -51,7 +71,7 @@ def parse_inventory(response):
     for item in items:
         item = item.strip()
         parts = item.split()
-        if len(parts) != 2:
+        if len(parts) != 2 or not parts[1].isdigit():
             continue
         resource_name = parts[0]
         quantity = int(parts[1])
@@ -124,6 +144,16 @@ def missing_stone_visible(level, inventory, vision):
                 return True
     return False
 
+def enough_players_present(level, vision):
+    """True if current tile has enough players for the next incantation."""
+
+    level_to_reach = level + 1
+    if level_to_reach not in REQUIREMENTS:
+        return False
+    if len(vision) == 0:
+        return False
+    return vision[0].get("player", 0) >= REQUIREMENTS[level_to_reach].get("players", 0)
+
 def can_start_incantation(level, inventory, vision):
     """Check if current tile meets incantation requirements."""
 
@@ -189,7 +219,9 @@ def choose_state(inventory, vision, level):
     if can_start_incantation(level, inventory, vision):
         return INCANT
     if has_required_stones_in_inventory(level, inventory):
-        return PREPARE_RITUAL
+        if enough_players_present(level, vision):
+            return PREPARE_RITUAL
+        return GATHER
     if missing_stone_visible(level, inventory, vision):
         return COLLECT_STONE
     return EXPLORE
@@ -343,6 +375,8 @@ def build_plan(trantorian):
         return ["Forward", "Look"]
     if state == EXPLORE:
         return ["Forward", "Look"]
+    if state == GATHER:
+        return ["Forward", "Look"]
     return ["Look"]
 
 def run_ai(trantorian: Trantorian, socket_file):
@@ -366,12 +400,9 @@ def run_ai(trantorian: Trantorian, socket_file):
             object_name = None
         send_command(socket_file, command)
         trantorian.pending_commands += 1
-        response = socket_file.readline().strip()
-        while is_async_message(response):
-            print(f"[async] {response}")
-            response = socket_file.readline().strip()
+        response = read_response(socket_file, trantorian, verb == "Incantation")
         if verb == "Incantation" and response == "Elevation underway":
-            second_response = socket_file.readline().strip()
+            second_response = read_response(socket_file, trantorian, True)
             response = f"{response} / {second_response}"
         trantorian.pending_commands -= 1
         print(f"[Buffer: {trantorian.pending_commands}/10] {verb:<11} -> {response}")
