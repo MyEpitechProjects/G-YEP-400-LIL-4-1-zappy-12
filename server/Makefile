@@ -5,7 +5,7 @@
 ## zorglub
 ##
 
-NAME = ../myteams_server
+NAME = ../zappy_server
 
 SRC =	src/commands/err_check.c	\
 		src/server_push.c			\
@@ -25,6 +25,9 @@ SRC =	src/commands/err_check.c	\
 		src/database/thread.c		\
 		src/database/user.c			\
 		src/split.c					\
+		src/clock.c					\
+		src/zappy_internal/timeunits.c	\
+		src/sys/my_memset.c			\
 
 
 OBJ = $(SRC:.c=.o)

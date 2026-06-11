@@ -6,6 +6,9 @@
 */
 
 #include "myserver.h"
+#include "clock.h"
+#include "zappy_internal.h"
+#include <time.h>
 
 static bool new_buffer(connection_t *_server, uint32_t i, char *req)
 {
@@ -88,6 +91,20 @@ static char *get_buffer(char *input)
     return buffer;
 }
 
+static void check_commands_time(connection_t *_server, uint32_t i,
+    char **command)
+{
+    time_t target_time = get_command_time(_server, command[0]);
+
+    if (_server->_fdsm[i].clock.base == 0)
+        start_clock(&_server->_fdsm[i].clock);
+    if (get_elapsed(&_server->_fdsm[i].clock) < target_time)
+        return;
+    reset_clock(&_server->_fdsm[i].clock);
+    handle_request(_server, i, command);
+    pop_buffer(_server, i, _server->_fdsm[i].buffer);
+}
+
 bool execute_buffer(connection_t *_server, uint32_t *i, bool ret)
 {
     char *command = NULL;
@@ -103,8 +120,7 @@ bool execute_buffer(connection_t *_server, uint32_t *i, bool ret)
         free(command);
         return true;
     }
-    handle_request(_server, *i, command_build);
-    pop_buffer(_server, *i, _server->_fdsm[*i].buffer);
+    check_commands_time(_server, *i, command_build);
     free_array((void **)command_build);
     free(command);
     return true;

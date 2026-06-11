@@ -102,7 +102,18 @@ typedef enum invocation_t {
     SERVER_TIME_EDIT,
     SERVER_GAME_END,
     SERVER_MESSAGE,
-    ERROR_UNKNOWN_COMMAND,
+    SERVER_IA_FORWARD,
+    SERVER_IA_RIGHT,
+    SERVER_IA_LEFT,
+    SERVER_IA_LOOK,
+    SERVER_IA_INVENTORY,
+    SERVER_IA_BROADCAST,
+    SERVER_IA_CONNECT_NBR,
+    SERVER_IA_FORK,
+    SERVER_IA_EJECT,
+    SERVER_IA_TAKE,
+    SERVER_IA_SET,
+    SERVER_IA_INCANTATION,
     ERROR_INVALID_PARAM,
 } invocation_t;
 
@@ -112,7 +123,10 @@ typedef enum argument_t {
     YES,
 } argument_t;
 
-
+typedef enum client_type_t {
+    CLIENT_GUI,
+    CLIENT_IA,
+} client_type_t;
 
 typedef struct port {
     int _p1;

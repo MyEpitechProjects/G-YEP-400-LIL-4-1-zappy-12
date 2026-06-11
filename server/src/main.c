@@ -7,14 +7,6 @@
 
 #include "myserver.h"
 
-static int print_help(int argCode)
-{
-    printf("USAGE: ./myteams_server port\n\n"
-        "port is the port number on which the"
-        " server socket listens.\n");
-    return argCode;
-}
-
 int main(int argc, char **argv)
 {
     arguments_t arguments;
@@ -22,8 +14,8 @@ int main(int argc, char **argv)
     int sfd;
     int argCode = parse_arg(argc, argv, &arguments);
 
-    if (argCode != -1)
-        return print_help(argCode);
+    if (argCode != 0 || !check_args(&arguments))
+        return argCode;
     sigemptyset(&mask);
     sigaddset(&mask, SIGINT);
     sigaddset(&mask, SIGTERM);

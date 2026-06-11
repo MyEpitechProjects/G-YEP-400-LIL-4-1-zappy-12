@@ -11,6 +11,8 @@
     #define MAX_CONN 1024
     #include "protocol.h"
     #include "map.h"
+    #include "clock.h"
+    #include "zappy_internal.h"
 
 typedef enum {
     UNDEFINED,
@@ -25,12 +27,9 @@ typedef struct pollfd_meta {
     fd_type_t _type;
     int _data_fd;
     int _control_idx;
-    bool _logged;
-    char _username[MAX_NAME_LENGTH];
-    char _uuid[UUID_STR_LEN];
+    char uuid[UUID_STR_LEN];
+    myclock_t clock;
     char *buffer;
-    context_t _ctx;
-    context_type_t _ctx_type;
 } pollfd_meta_t;
 
 typedef struct instances_t {
@@ -47,6 +46,7 @@ typedef struct arguments {
     uint16_t port;
     uint64_t width;
     uint64_t height;
+    uint64_t team_number;
     char **teams_names;
     uint64_t client_number;
     uint8_t freq;
@@ -66,10 +66,13 @@ typedef bool (*cmd_handler_t)(connection_t *_server, uint32_t i,
     req_body_t *body);
 
 typedef struct cmd_t {
+    char *name;
     invocation_t func;
     cmd_handler_t handler;
-    arg_body_t check;
+    unit_type_t type;
 } cmd_t;
+
+bool check_args(arguments_t *args);
 
 bool free_array(void **arr);
 
@@ -111,13 +114,6 @@ bool err_response(int fd, message_t *resp, req_body_t *body);
 int free_server(connection_t *_server, bool code);
 void free_instance(instances_t *_data);
 void write_instance(instances_t *_data);
-
-status_t check_contexte(connection_t *_server, uint32_t i, context_t *ctx,
-    invocation_t func);
-bool is_thread_name_exist(connection_t *_server, char *name, char *uuid2);
-bool is_team_name_exist(connection_t *_server, char *name);
-bool is_channel_name_exist(connection_t *_server, char *name, char *uuid2);
-bool is_user_sub(connection_t *_server, char *uuid, char *uuid2);
 
 
 subscription_t *read_subscription_file(char *f);
@@ -162,35 +158,10 @@ user_t *add_user(user_t *old);
 user_t *remove_user(user_t *old, uint32_t index);
 bool write_user_file(char *f, user_t *user);
 
-bool cmd_login(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_logout(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_messages(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_subscribe(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_subscribed(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_unsubscribe(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_user(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_users(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_send(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_use(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_create(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_info(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_list(connection_t *_server, uint32_t i, req_body_t *body);
 
-bool cmd_create_team(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_create_thread(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_create_channel(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_create_reply(connection_t *_server, uint32_t i, req_body_t *body);
-
-bool cmd_info_user(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_info_thread(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_info_team(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_info_channel(connection_t *_server, uint32_t i, req_body_t *body);
-
-bool cmd_list_channel(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_list_reply(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_list_thread(connection_t *_server, uint32_t i, req_body_t *body);
-bool cmd_list_team(connection_t *_server, uint32_t i, req_body_t *body);
 static const cmd_t commands[] = {
+    {"Look", SERVER_IA_LOOK, NULL, UNIT_LOOK},
+    {NULL, UNK_INVOCATION, NULL, UNIT_NONE},
 };
 /*
 static const cmd_t commands[] = {

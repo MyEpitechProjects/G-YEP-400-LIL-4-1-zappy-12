@@ -7,7 +7,7 @@
 
 #ifndef __MAP__
     #define __MAP__
-    #include "stdint.h"
+    #include <stdint.h>
     #include "tiles.h"
 
 typedef struct map_t {

@@ -6,6 +6,7 @@
 */
 
 #include "myserver.h"
+#include "clock.h"
 
 static void *free_fds(connection_t *_server)
 {
@@ -33,6 +34,13 @@ static void *free_socket(connection_t *_server)
     }
     free(_server->_sockets);
     return NULL;
+}
+
+void destroy_clock(myclock_t *_clock)
+{
+    if (!_clock)
+        return;
+    free(_clock);
 }
 
 bool free_array(void **arr)

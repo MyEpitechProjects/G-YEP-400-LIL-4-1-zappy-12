@@ -36,15 +36,14 @@ bool accept_data(connection_t *_server, uint32_t i)
     return true;
 }
 
-static status_t check_functinons_args(message_t *req,
-    req_body_t *body)
+static status_t check_functinons_args(message_t *req)
 {
     status_t status = COMMAND_OK;
 
     for (int j = 0; commands[j].func != UNK_INVOCATION; j++) {
         if (req->_func != commands[j].func)
             continue;
-        status = body_check(&commands[j].check, body);
+        status = COMMAND_OK;
         break;
     }
     return status;
@@ -74,7 +73,7 @@ bool handle_request(connection_t *_server, uint32_t i,
     (void)command;
     return true;
     memset(&resp, 0, sizeof(message_t));
-    status = check_functinons_args(NULL, NULL);
+    status = check_functinons_args(NULL);
     if (status != COMMAND_OK){
         set_message(&resp, FAILED, status, 0);
         return send_response(_server->_fds[i].fd, &resp, NULL);

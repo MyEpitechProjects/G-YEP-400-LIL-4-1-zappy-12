@@ -23,7 +23,7 @@ static bool run_server(connection_t *_server)
     bool ret = true;
 
     while (ret) {
-        poll(_server->_fds, _server->nfds, 350);
+        poll(_server->_fds, _server->nfds, -1);
         for (uint32_t i = 0; i < _server->nfds;){
             ret = requese_handler(_server, &i, ret);
             execute_buffer(_server, &i, ret);

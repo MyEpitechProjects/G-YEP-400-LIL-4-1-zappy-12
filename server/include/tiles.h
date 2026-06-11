@@ -7,6 +7,7 @@
 
 #ifndef __TILE__
     #define __TILE__
+    #include <stdbool.h>
 
 typedef struct tile_t {
     bool isTile;
