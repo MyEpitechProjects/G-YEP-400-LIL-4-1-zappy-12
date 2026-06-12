@@ -6,6 +6,7 @@
 */
 
 #include <stdlib.h>
+#include <string.h>
 
 unsigned int list_len(char **argv)
 {
@@ -76,12 +77,27 @@ static void fill_words(char **array, const char *str)
     array[j] = NULL;
 }
 
+static char **empty(void)
+{
+    char **array = malloc(sizeof(2));
+
+    if (!array)
+        return NULL;
+    array[0] = malloc(2);
+    if (array[0])
+        strcpy(array[0], " ");
+    array[1] = NULL;
+    return array;
+}
+
 char **str_to_word_array(const char *str)
 {
     char **array;
 
     if (!str)
         return NULL;
+    if (str[0] == '\0')
+        return empty();
     array = malloc(sizeof(char *) * (word_count(str) + 1));
     if (!array)
         return NULL;

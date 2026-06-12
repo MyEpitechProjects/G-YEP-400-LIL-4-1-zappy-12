@@ -5,10 +5,9 @@
 ## zorglub
 ##
 
-NAME = ../zappy_server
+NAME = zappy_server
 
-SRC =	src/commands/err_check.c	\
-		src/server_push.c			\
+SRC =	src/server_push.c			\
 		src/buffer.c				\
 		src/server_pop.c			\
 		src/free_server.c			\
@@ -17,23 +16,29 @@ SRC =	src/commands/err_check.c	\
 		src/starter.c				\
 		src/server.c				\
 		src/main.c					\
-		src/database/channel.c		\
-		src/database/dm.c			\
-		src/database/reply.c		\
-		src/database/subscription.c	\
-		src/database/team.c			\
-		src/database/thread.c		\
-		src/database/user.c			\
 		src/split.c					\
 		src/clock.c					\
 		src/zappy_internal/timeunits.c	\
 		src/sys/my_memset.c			\
+		src/commands/function.c		\
+		src/commands/gui/protocol_start.c	\
+		src/commands/gui/protocol_bad_param.c	\
+		src/commands/gui/protocol_map_size.c	\
+		src/commands/gui/protocol_tile.c	\
+		src/commands/gui/protocol_time_unit.c	\
+		src/commands/gui/protocol_unk.c	\
+		src/commands/gui/protocol_teams.c	\
+		src/commands/common/protocol_ko.c	\
+		src/commands/ia/protocol_start.c	\
+		src/commands/ia/protocol_bad_param.c	\
+		src/zappy_internal/zappy.c				\
+		src/string_util/create.c			\
 
 
 OBJ = $(SRC:.c=.o)
 
 CC = epiclang
-CFLAGS  =	-Wall -Wextra -std=gnu17 -Iinclude \
+CFLAGS  =	-Wall -Wextra -std=gnu17 -Iinclude -g \
 			-I../common/include
 LDFLAGS = -luuid
 

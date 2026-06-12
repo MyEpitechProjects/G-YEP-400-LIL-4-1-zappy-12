@@ -54,7 +54,6 @@ bool free_array(void **arr)
 
 int free_server(connection_t *_server, bool code)
 {
-    free_instance(NULL);
     free_fds(_server);
     free_fdsm(_server);
     free_socket(_server);

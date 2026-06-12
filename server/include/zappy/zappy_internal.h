@@ -1,0 +1,102 @@
+/*
+** EPITECH PROJECT, 2026
+** ftp server
+** File description:
+** none
+*/
+
+#ifndef __ZAPPY_INTERNAL__
+    #define __ZAPPY_INTERNAL__
+    #include <stdint.h>
+    #include <stdbool.h>
+    #include <time.h>
+    #include "tiles.h"
+    #include "player.h"
+    #include "egg.h"
+
+typedef enum unit_type_t {
+    UNIT_NONE,
+    UNIT_FORWARD,
+    UNIT_TURN,
+    UNIT_LOOK,
+    UNIT_BROADCAST,
+    UNIT_EJECT,
+    UNIT_TAKE,
+    UNIT_SET,
+    UNIT_INVENTORY,
+    UNIT_CONNECT_NBR,
+    UNIT_FORK,
+    UNIT_INCANTATION,
+    UNIT_SURVIE,
+    UNIT_RESPAWN_RESOURCES,
+} unit_type_t;
+
+typedef struct unit_t {
+    unit_type_t type;
+    uint16_t value;
+} unit_t;
+
+typedef struct zappy_t {
+    uint64_t w;
+    uint64_t h;
+    tile_t *tiles;
+    uint64_t nb_players;
+    player_t *players;
+    uint64_t nb_eggs;
+    egg_t *eggs;
+} zappy_t;
+
+static const unit_t unit_values[] = {
+    {UNIT_FORWARD, 7},
+    {UNIT_TURN, 7},
+    {UNIT_LOOK, 7},
+    {UNIT_BROADCAST, 7},
+    {UNIT_EJECT, 7},
+    {UNIT_TAKE, 7},
+    {UNIT_SET, 7},
+    {UNIT_INVENTORY, 1},
+    {UNIT_FORK, 42},
+    {UNIT_INCANTATION, 300},
+    {UNIT_SURVIE, 126},
+    {UNIT_RESPAWN_RESOURCES, 20},
+    {UNIT_NONE, 0},
+};
+
+typedef struct connection connection_t;
+
+time_t get_time_unit(connection_t *_server, unit_type_t type);
+
+time_t get_command_time(connection_t *_server, unit_type_t type);
+
+
+char *string_create(char *base);
+char *string_append(char *string, char *append);
+char *string_append_int(char *string, int64_t value);
+char *string_append_uint(char *string, uint64_t value);
+char *string_end(char *string);
+
+bool zappy(connection_t *_server, zappy_t *zappy);
+uint64_t tile_pos_to_index(connection_t *_server, uint64_t x, uint64_t y);
+
+
+
+
+bool protocol_map_size(connection_t *_server, uint32_t i, char **command);
+bool protocol_graphic_start(connection_t *_server, uint32_t i, char **command);
+bool protocol_tile(connection_t *_server, uint32_t i, char **command);
+bool protocol_time_unit(connection_t *_server, uint32_t i, char **command);
+bool protocol_graphic_bad_param(connection_t *_server, uint32_t i,
+    char *original_resp);
+bool protocol_map_tiles(connection_t *_server, uint32_t i, char **command);
+bool protocol_unk(connection_t *_server, uint32_t i, char **command);
+bool protocol_teams(connection_t *_server, uint32_t i, char **command);
+
+
+bool protocol_ia_start(connection_t *_server, uint32_t i, char **command);
+bool protocol_ia_bad_param(connection_t *_server, uint32_t i,
+    char *original_resp);
+
+
+bool protocol_ko(connection_t *_server, uint32_t i, char **command);
+
+#endif

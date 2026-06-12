@@ -9,15 +9,15 @@
 
 bool recieve_request(connection_t *_server)
 {
+    char *string = NULL;
     bool good = push_poller(_server, accept(_server->_sockets[0]._fd,
             NULL, NULL), NULL, FD_CONTROL);
-    message_t resp;
 
     if (!good)
         return false;
-    memset(&resp, 0, sizeof(message_t));
-    set_message(&resp, RESPONSE, READY, 0);
-    return send_response(_server->_fds[_server->nfds - 1].fd, &resp, NULL);
+    string = string_create("WELCOME");
+    string = send_string(_server->_fds[_server->nfds - 1].fd, string);
+    return true;
 }
 
 bool accept_data(connection_t *_server, uint32_t i)
@@ -36,57 +36,74 @@ bool accept_data(connection_t *_server, uint32_t i)
     return true;
 }
 
-static status_t check_functinons_args(message_t *req)
+static bool check_commands_time(connection_t *_server, uint32_t i,
+    unit_type_t type)
 {
-    status_t status = COMMAND_OK;
+    time_t target_time = get_command_time(_server, type);
 
-    for (int j = 0; commands[j].func != UNK_INVOCATION; j++) {
-        if (req->_func != commands[j].func)
-            continue;
-        status = COMMAND_OK;
-        break;
-    }
-    return status;
+    if (type == UNIT_NONE)
+        return true;
+    if (_server->_fdsm[i].clock.base == 0)
+        start_clock(&_server->_fdsm[i].clock);
+    if (get_elapsed(&_server->_fdsm[i].clock) < target_time)
+        return false;
+    return true;
 }
 
-static bool final_handle_request(connection_t *_server, uint32_t i,
-    message_t *req, req_body_t *body)
+static bool run_command(connection_t *_server, uint32_t i, char **command,
+    const cmd_t *functions)
 {
-    message_t resp;
+    invocation_t invoked = get_command_invoke(*command, functions);
+    unit_type_t type = get_command_unit_type(invoked, functions);
+    cmd_handler_t func = get_command_function(invoked, functions);
 
-    memset(&resp, 0, sizeof(message_t));
-    for (int j = 0; commands[j].func != UNK_INVOCATION; j++) {
-        if (req->_func != commands[j].func)
+    if (!check_commands_time(_server, i, type))
+        return true;
+    reset_clock(&_server->_fdsm[i].clock);
+    if (func)
+        func(_server, i, command);
+    pop_buffer(_server, i, _server->_fdsm[i].buffer);
+    return true;
+}
+
+static bool register_graphic(connection_t *_server, uint32_t i,
+    char **command)
+{
+    _server->_fdsm[i].client_type = CLIENT_GUI;
+    return protocol_graphic_start(_server, i, command);
+}
+
+static bool register_ia(connection_t *_server, uint32_t i,
+    char **command)
+{
+    for (uint64_t x = 0; x < _server->arguments->team_number; x++){
+        if (strcmp(*command, _server->arguments->teams_names[x]) != 0)
             continue;
-        return commands[j].handler(_server, i, body);
+        _server->_fdsm[i].client_type = CLIENT_IA;
+        return protocol_ia_start(_server, i, command);
     }
-    set_message(&resp, FAILED, INTERNAL, 0);
-    return send_response(_server->_fds[i].fd, &resp, NULL);
+    return protocol_ko(_server, i, command);
 }
 
 bool handle_request(connection_t *_server, uint32_t i,
     char **command)
 {
-    message_t resp;
-    status_t status = COMMAND_OK;
-
-    (void)command;
+    switch (_server->_fdsm[i].client_type){
+        case CLIENT_UNDEFINED:
+            pop_buffer(_server, i, _server->_fdsm[i].buffer);
+            if (strcmp(command[0], GRAPHICS_CODE) == 0)
+                return register_graphic(_server, i, command);
+            else
+                return register_ia(_server, i, command);
+            break;
+        case CLIENT_GUI:
+            run_command(_server, i, command, gui_commands);
+            break;
+        case CLIENT_IA:
+            run_command(_server, i, command, ia_commands);
+            break;
+    }
     return true;
-    memset(&resp, 0, sizeof(message_t));
-    status = check_functinons_args(NULL);
-    if (status != COMMAND_OK){
-        set_message(&resp, FAILED, status, 0);
-        return send_response(_server->_fds[i].fd, &resp, NULL);
-    }
-    status = check_request(_server, &_server->_fdsm[i], NULL, NULL);
-    if (status != COMMAND_OK){
-        set_message(&resp, FAILED, status, 0);
-        return err_response(_server->_fds[i].fd, &resp, NULL);
-    }
-    if (false)
-        return final_handle_request(_server, i, NULL, NULL);
-    set_message(&resp, FAILED, INTERNAL, 0);
-    return send_response(_server->_fds[i].fd, &resp, NULL);
 }
 
 bool requese_handler(connection_t *_server, uint32_t *i, bool ret)
