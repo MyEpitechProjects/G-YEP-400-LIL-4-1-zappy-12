@@ -79,8 +79,7 @@ static bool register_ia(connection_t *_server, uint32_t i,
     for (uint64_t x = 0; x < _server->arguments->team_number; x++){
         if (strcmp(*command, _server->arguments->teams_names[x]) != 0)
             continue;
-        _server->_fdsm[i].client_type = CLIENT_IA;
-        return protocol_ia_start(_server, i, command);
+        return protocol_ia_start(_server, i, command, *command);
     }
     return protocol_ko(_server, i, command);
 }

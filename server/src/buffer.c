@@ -89,7 +89,7 @@ bool pop_buffer(connection_t *_server, uint32_t i, char *input)
     return true;
 }
 
-static char *get_buffer(char *input)
+char *get_buffer(char *input)
 {
     uint64_t w = get_buffer_length(input);
     char *buffer = NULL;

@@ -15,5 +15,7 @@
 
 void my_memset(char *value, uint8_t byte, size_t size);
 uint64_t randint(uint64_t max);
+uint64_t max(uint64_t x, uint64_t y);
+uint64_t min(uint64_t x, uint64_t y);
 
 #endif

@@ -6,6 +6,7 @@
 */
 
 #include "clock.h"
+#include "sys.h"
 #include <stdlib.h>
 
 
@@ -38,7 +39,7 @@ myclock_t *start_clock(myclock_t *_clock)
         _clock->base += (time(NULL) - _clock->offset);
         _clock->offset = 0;
     }
-    _clock->active = false;
+    _clock->active = true;
     return _clock;
 }
 
@@ -61,6 +62,6 @@ uint64_t get_elapsed(myclock_t *_clock)
     if (!_clock || _clock->base == 0)
         return 0;
     if (_clock->active)
-        return (time(NULL) - _clock->base);
-    return (_clock->offset - _clock->base);
+        return (max(0, time(NULL) - _clock->base));
+    return (max(0, _clock->offset - _clock->base));
 }

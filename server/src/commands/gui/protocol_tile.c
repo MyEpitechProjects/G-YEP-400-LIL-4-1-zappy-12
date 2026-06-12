@@ -14,22 +14,22 @@ static char *add_inventory(connection_t *_server, uint64_t x, uint64_t y,
 {
     uint64_t index = tile_pos_to_index(_server, x, y);
 
-    string = string_append_uint(string, x);
-    string = string_append_uint(string, y);
+    string = string_append_uint(string, x, true);
+    string = string_append_uint(string, y, true);
     string = string_append_uint(string,
-        _server->zappy.tiles[index].inventory.food);
+        _server->zappy.tiles[index].inventory.food, true);
     string = string_append_uint(string,
-        _server->zappy.tiles[index].inventory.linemate);
+        _server->zappy.tiles[index].inventory.linemate, true);
     string = string_append_uint(string,
-        _server->zappy.tiles[index].inventory.deraumere);
+        _server->zappy.tiles[index].inventory.deraumere, true);
     string = string_append_uint(string,
-        _server->zappy.tiles[index].inventory.sibur);
+        _server->zappy.tiles[index].inventory.sibur, true);
     string = string_append_uint(string,
-        _server->zappy.tiles[index].inventory.mendiane);
+        _server->zappy.tiles[index].inventory.mendiane, true);
     string = string_append_uint(string,
-        _server->zappy.tiles[index].inventory.phiras);
+        _server->zappy.tiles[index].inventory.phiras, true);
     string = string_append_uint(string,
-        _server->zappy.tiles[index].inventory.thystame);
+        _server->zappy.tiles[index].inventory.thystame, true);
     return string;
 }
 

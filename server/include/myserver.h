@@ -28,7 +28,7 @@ typedef struct pollfd_meta {
     int _data_fd;
     int _control_idx;
     client_type_t client_type;
-    char uuid[UUID_STR_LEN];
+    uint64_t id;
     myclock_t clock;
     char *buffer;
 } pollfd_meta_t;
@@ -76,6 +76,8 @@ bool free_array(void **arr);
 
 bool execute_buffer(connection_t *_server, uint32_t *i, bool ret);
 
+char *get_buffer(char *input);
+
 bool handle_request(connection_t *_server, uint32_t i,
     char **command);
 
@@ -115,12 +117,20 @@ cmd_handler_t get_command_function(invocation_t invoke,
 static const cmd_t ia_commands[] = {
     {NULL, UNK_INVOCATION, protocol_ko, UNIT_NONE},
 };
+
 static const cmd_t gui_commands[] = {
     {"sgt", CLIENT_TIME_REQ, protocol_time_unit, UNIT_NONE},
     {"msz", CLIENT_MAP_SIZE, protocol_map_size, UNIT_NONE},
     {"bct", CLIENT_TILE_CONTENT, protocol_tile, UNIT_NONE},
     {"mct", CLIENT_MAP_CONTENT, protocol_map_tiles, UNIT_NONE},
     {"tna", CLIENT_TEAMS_NAMES, protocol_teams, UNIT_NONE},
+    {"ppo", CLIENT_PLAYER_POS, protocol_player_pos, UNIT_NONE},
+    {"plv", CLIENT_PLAYER_LEVEL, protocol_player_level,
+        UNIT_NONE},
+    {"pin", CLIENT_PLAYER_INV, protocol_player_inventory,
+        UNIT_NONE},
+    {"sst", CLIENT_TIME_EDIT, protocol_time_unit_edit,
+        UNIT_NONE},
     {NULL, UNK_INVOCATION, protocol_unk, UNIT_NONE},
 };
 

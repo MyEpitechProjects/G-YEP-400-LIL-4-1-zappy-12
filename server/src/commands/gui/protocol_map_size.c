@@ -14,8 +14,8 @@ bool protocol_map_size(connection_t *_server, uint32_t i, char **command)
     char *string = string_create("msz");
 
     (void)command;
-    string = string_append_uint(string, _server->arguments->width);
-    string = string_append_uint(string, _server->arguments->height);
+    string = string_append_uint(string, _server->arguments->width, true);
+    string = string_append_uint(string, _server->arguments->height, true);
     string = send_string(_server->_fds[i].fd, string);
     return true;
 }

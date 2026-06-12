@@ -14,8 +14,10 @@
     #include "player.h"
     #include "egg.h"
     #include "clock.h"
+    #define BASE_FOOD 10
 
     #define FOOD_SPAWN_UNIT 20
+    #define EAT_UNIT 126
     #define DENSITY_FOOD 50
     #define DENSITY_LINEMATE 30
     #define DENSITY_DERAUMERE 15
@@ -92,18 +94,24 @@ uint64_t calculate_time_freq(connection_t *_server, uint64_t value);
 
 bool add_food_tile(connection_t *_server, zappy_t *zappy);
 
+bool spawn_food(connection_t *_server, zappy_t *zappy);
+
 
 char *string_create(char *base);
-char *string_append(char *string, char *append);
-char *string_append_int(char *string, int64_t value);
-char *string_append_uint(char *string, uint64_t value);
+char *string_append(char *string, char *append, bool spaced);
+char *string_append_int(char *string, int64_t value, bool spaced);
+char *string_append_uint(char *string, uint64_t value, bool spaced);
 char *string_end(char *string);
 
 bool zappy(connection_t *_server, zappy_t *zappy);
 uint64_t tile_pos_to_index(connection_t *_server, uint64_t x, uint64_t y);
+uint64_t get_egg_index(connection_t *_server, egg_t *egg, bool *ok);
 
 
-
+uint64_t extract_num(char *ptr, char **endptr, int base, bool ok);
+player_t *get_player(connection_t *_server, uint64_t index);
+void *list_push(void *original, uint64_t *size, uint64_t itemSize,
+    bool *status);
 
 bool protocol_map_size(connection_t *_server, uint32_t i, char **command);
 bool protocol_graphic_start(connection_t *_server, uint32_t i, char **command);
@@ -114,11 +122,37 @@ bool protocol_graphic_bad_param(connection_t *_server, uint32_t i,
 bool protocol_map_tiles(connection_t *_server, uint32_t i, char **command);
 bool protocol_unk(connection_t *_server, uint32_t i, char **command);
 bool protocol_teams(connection_t *_server, uint32_t i, char **command);
+bool protocol_player_inventory(connection_t *_server, uint32_t i,
+    char **command);
+bool protocol_player_level(connection_t *_server, uint32_t i, char **command);
+bool protocol_player_pos(connection_t *_server, uint32_t i, char **command);
+bool protocol_time_unit_edit(connection_t *_server, uint32_t i,
+    char **command);
 
 
-bool protocol_ia_start(connection_t *_server, uint32_t i, char **command);
+bool intern_protocol_player_connected(connection_t *_server, uint32_t i,
+    player_t *player);
+bool intern_protocol_player_inventory(connection_t *_server, uint32_t i,
+    player_t *player);
+bool intern_protocol_player_level(connection_t *_server, uint32_t i,
+    player_t *player);
+bool intern_protocol_player_pos(connection_t *_server, uint32_t i,
+    player_t *player);
+bool intern_protocol_egg_take(connection_t *_server, uint32_t i,
+    egg_t *egg);
+bool intern_protocol_player_death(connection_t *_server, uint32_t i,
+    player_t *player);
+
+
+bool protocol_ia_start(connection_t *_server, uint32_t i,
+    char **command, char *team);
 bool protocol_ia_bad_param(connection_t *_server, uint32_t i,
     char *original_resp);
+
+bool trigger_graphic_player_login(connection_t *_server, player_t *player,
+    egg_t *egg);
+bool trigger_graphic_player_eat(connection_t *_server, player_t *player);
+bool trigger_graphic_player_death(connection_t *_server, player_t *player);
 
 
 bool protocol_ko(connection_t *_server, uint32_t i, char **command);

@@ -13,8 +13,10 @@
 
 typedef struct egg_t {
     pos_t pos;
+    uint64_t index;
     int64_t creatorIndex;
     char *team;
+    bool taken;
 } egg_t;
 
 #endif

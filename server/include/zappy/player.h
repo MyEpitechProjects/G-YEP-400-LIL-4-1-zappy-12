@@ -11,11 +11,17 @@
     #include "inventory.h"
     #include "orientation.h"
     #include "position.h"
+    #include "clock.h"
 
 typedef struct player_t {
     pos_t pos;
     orientation_t o;
     inventory_t inventory;
+    uint64_t index;
+    uint8_t level;
+    char *team;
+    bool dead;
+    myclock_t eatClock;
 } player_t;
 
 #endif

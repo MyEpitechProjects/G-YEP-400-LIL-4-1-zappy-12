@@ -16,7 +16,8 @@ bool protocol_teams(connection_t *_server, uint32_t i, char **command)
     (void)command;
     for (uint64_t c = 0; c < _server->arguments->team_number; c++){
         string = string_create("tna");
-        string = string_append(string, _server->arguments->teams_names[c]);
+        string = string_append(string, _server->arguments->teams_names[c],
+            true);
         string = send_string(_server->_fds[i].fd, string);
     }
     return true;

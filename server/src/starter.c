@@ -7,6 +7,7 @@
 
 #include "myserver.h"
 #include "zappy/zappy_internal.h"
+#include "sys.h"
 
 void get_sock_port(socket_t *_socket)
 {
@@ -19,15 +20,95 @@ void get_sock_port(socket_t *_socket)
     _socket->_port._p2 = port % 256;
 }
 
+static bool is_buffer_empty(connection_t *_server)
+{
+    char *buffer = NULL;
+
+    for (uint32_t i = 0; i < _server->nfds; i++){
+        buffer = get_buffer(_server->_fdsm[i].buffer);
+        if (buffer != NULL)
+            return false;
+    }
+    return true;
+}
+
+static uint64_t get_eat_timedout(connection_t *_server, uint64_t time)
+{
+    uint64_t eatUnit = 0;
+    uint64_t calculated_time = 0;
+
+    for (uint32_t i = 0; i < _server->zappy.nb_players; i++){
+        if (_server->zappy.players[i].dead)
+            continue;
+        eatUnit = calculate_time_freq(_server, EAT_UNIT);
+        calculated_time = (eatUnit -
+            get_elapsed(&_server->zappy.players[i].eatClock));
+        time = min(time, calculated_time);
+    }
+    return time;
+}
+
+static uint64_t get_timedout(connection_t *_server)
+{
+    uint64_t foodUnit = calculate_time_freq(_server, FOOD_SPAWN_UNIT);
+    uint64_t timed = 0;
+    uint64_t elapsed = get_elapsed(&_server->zappy.foodClock);
+
+    if (foodUnit >= elapsed)
+        timed = foodUnit - elapsed;
+    else
+        timed = 0;
+    timed = get_eat_timedout(_server, timed);
+    return max(0, timed) * 1000;
+}
+
+static bool check_eat(connection_t *_server, uint32_t *i)
+{
+    uint64_t eatUnit = calculate_time_freq(_server, EAT_UNIT);
+    uint64_t id = _server->_fdsm[*i].id;
+
+    if (get_elapsed(
+            &_server->zappy.players[id].eatClock) < eatUnit)
+        return false;
+    reset_clock(&_server->zappy.players[id].eatClock);
+    start_clock(&_server->zappy.players[id].eatClock);
+    if (_server->zappy.players[id].inventory.food == 0){
+        _server->zappy.players[id].dead = true;
+        trigger_graphic_player_death(_server, &_server->zappy.players[id]);
+        return pop_poller(_server, i);
+    }
+    _server->zappy.players[id].inventory.food--;
+    trigger_graphic_player_eat(_server, &_server->zappy.players[id]);
+    return false;
+}
+
+static bool execute_client(connection_t *_server, uint32_t *i, bool ret)
+{
+    bool down = false;
+
+    if (_server->_fdsm[*i].client_type == CLIENT_IA)
+        down = check_eat(_server, i);
+    if (!down){
+        ret = requese_handler(_server, i, ret);
+        execute_buffer(_server, i, ret);
+    }
+    return ret;
+}
+
 static bool run_server(connection_t *_server)
 {
     bool ret = true;
+    uint64_t timedout = 0;
 
     while (ret) {
-        poll(_server->_fds, _server->nfds, -1);
+        if (is_buffer_empty(_server))
+            timedout = get_timedout(_server);
+        else
+            timedout = 0;
+        spawn_food(_server, &_server->zappy);
+        poll(_server->_fds, _server->nfds, timedout);
         for (uint32_t i = 0; i < _server->nfds;){
-            ret = requese_handler(_server, &i, ret);
-            execute_buffer(_server, &i, ret);
+            ret = execute_client(_server, &i, ret);
             i++;
         }
     }

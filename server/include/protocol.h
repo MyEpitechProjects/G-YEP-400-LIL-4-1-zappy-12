@@ -28,6 +28,7 @@
     #include <stdint.h>
     #include <arpa/inet.h>
     #include <uuid/uuid.h>
+    #include <math.h>
 
     #define GRAPHICS_CODE "GRAPHIC"
 
