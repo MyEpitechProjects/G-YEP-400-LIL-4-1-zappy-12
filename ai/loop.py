@@ -8,7 +8,7 @@
 from ai.trantorian import Trantorian
 from ai.protocol import is_async_message, is_incantation_event, parse_broadcast
 from ai.strategy import build_plan
-from ai.reproduction import spawn_child
+from ai.fork import spawn_child
 
 def send_command(socket_file, command):
     socket_file.write(command + "\n")

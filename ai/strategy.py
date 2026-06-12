@@ -9,7 +9,7 @@ from ai.constants import FOOD_LOW_LIMIT, SURVIVE, INCANT, PREPARE_RITUAL, COLLEC
 from ai.rules import has_required_stones_in_inventory, missing_stone_visible, enough_players_present, can_start_incantation
 from ai.navigation import distance_from_tile_index, build_move_plan, moves_toward_sound
 from ai.protocol import parse_gather_call
-from ai.reproduction import should_reproduce
+from ai.fork import should_reproduce
 
 def find_best_tile(vision, inventory, level):
     """Find the most valuable visible tile for the current state."""

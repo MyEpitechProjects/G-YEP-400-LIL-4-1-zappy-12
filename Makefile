@@ -17,7 +17,7 @@ SRC_SERVER = server/src/main.c
 
 OBJ_SERVER = $(SRC_SERVER:.c=.o)
 
-TESTS_DIR = tests/ai
+TESTS_DIR_AI = tests/ai
 
 all: $(NAME_SERVER) $(NAME_AI)
 
@@ -29,7 +29,7 @@ $(NAME_AI):
 	chmod +x $(NAME_AI)
 
 tests_run:
-	PYTHONPATH=. $(PYTHON) -m coverage run --source=ai -m unittest discover -s $(TESTS_DIR) -p "test_*.py" -v
+	PYTHONPATH=. $(PYTHON) -m coverage run --source=ai -m unittest discover -s $(TESTS_DIR_AI) -p "test_*.py" -v
 
 clean:
 	rm -f $(OBJ_SERVER)
