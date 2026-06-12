@@ -79,7 +79,7 @@ static void fill_words(char **array, const char *str)
 
 static char **empty(void)
 {
-    char **array = malloc(sizeof(2));
+    char **array = malloc(sizeof(char *) * 2);
 
     if (!array)
         return NULL;

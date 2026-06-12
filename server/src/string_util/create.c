@@ -28,7 +28,7 @@ char *string_append(char *string, char *append)
     string = realloc(string, sizeof(char) * (strlen(string) +
             strlen(append) + 2));
     if (!string){
-        free(bak);
+        bak = myfree(bak);
         return NULL;
     }
     strcat(string, append);

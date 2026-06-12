@@ -21,6 +21,6 @@ char *send_string(int fd, char *resp)
     if (!resp)
         return NULL;
     write(fd, resp, strlen(resp));
-    free(resp);
-    return NULL;
+    resp = myfree(resp);
+    return resp;
 }

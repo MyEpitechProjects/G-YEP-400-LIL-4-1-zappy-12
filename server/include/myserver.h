@@ -81,6 +81,8 @@ bool handle_request(connection_t *_server, uint32_t i,
 
 char **str_to_word_array(const char *str);
 
+void *myfree(void *ptr);
+
 bool complete_buffer(connection_t *_server, uint32_t *i);
 
 bool pop_poller(connection_t *_server, uint32_t *i);

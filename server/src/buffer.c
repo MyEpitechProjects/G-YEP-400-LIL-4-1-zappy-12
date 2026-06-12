@@ -43,7 +43,9 @@ bool complete_buffer(connection_t *_server, uint32_t *i)
 
     memset(req, 0, 1024);
     rd = read(_server->_fds[*i].fd, req, 1023);
-    if (rd <= 0)
+    if (rd == 0)
+        return pop_poller(_server, i);
+    if (rd < 0)
         return true;
     if (!_server->_fdsm[*i].buffer) {
         new_buffer(_server, *i, req);
@@ -74,7 +76,7 @@ bool pop_buffer(connection_t *_server, uint32_t i, char *input)
         return true;
     remaining_len = strlen(input) - w;
     if (remaining_len == 0) {
-        free(input);
+        input = myfree(input);
         _server->_fdsm[i].buffer = NULL;
         return true;
     }
@@ -82,7 +84,7 @@ bool pop_buffer(connection_t *_server, uint32_t i, char *input)
     if (!new_buff)
         return false;
     strcpy(new_buff, input + w);
-    free(input);
+    input = myfree(input);
     _server->_fdsm[i].buffer = new_buff;
     return true;
 }
@@ -114,11 +116,11 @@ bool execute_buffer(connection_t *_server, uint32_t *i, bool ret)
         return true;
     command_build = str_to_word_array(command);
     if (!command_build) {
-        free(command);
+        command = myfree(command);
         return true;
     }
     handle_request(_server, *i, command_build);
     free_array((void **)command_build);
-    free(command);
+    command = myfree(command);
     return true;
 }

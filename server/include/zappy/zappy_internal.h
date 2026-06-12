@@ -123,4 +123,6 @@ bool protocol_ia_bad_param(connection_t *_server, uint32_t i,
 
 bool protocol_ko(connection_t *_server, uint32_t i, char **command);
 
+bool free_zappy(connection_t *_server, zappy_t *zappy);
+
 #endif

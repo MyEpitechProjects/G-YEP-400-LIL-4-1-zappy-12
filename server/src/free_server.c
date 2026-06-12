@@ -6,7 +6,14 @@
 */
 
 #include "myserver.h"
+#include "zappy/zappy_internal.h"
 #include "clock.h"
+
+void *myfree(void *ptr)
+{
+    free(ptr);
+    return NULL;
+}
 
 static void *free_fds(connection_t *_server)
 {
@@ -57,6 +64,7 @@ int free_server(connection_t *_server, bool code)
     free_fds(_server);
     free_fdsm(_server);
     free_socket(_server);
+    free_zappy(_server, &_server->zappy);
     _server->nfds = 0;
     _server->nfds = 0;
     return code;

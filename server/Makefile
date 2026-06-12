@@ -33,7 +33,8 @@ SRC =	src/server_push.c			\
 		src/commands/ia/protocol_start.c	\
 		src/commands/ia/protocol_bad_param.c	\
 		src/zappy_internal/zappy.c				\
-		src/zappy_internal/resources.c				\
+		src/zappy_internal/resources.c			\
+		src/zappy_internal/free.c				\
 		src/string_util/create.c			\
 
 

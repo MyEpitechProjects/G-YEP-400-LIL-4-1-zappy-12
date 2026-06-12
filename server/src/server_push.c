@@ -52,8 +52,8 @@ bool push_poller(connection_t *_server, int fd,
         sizeof(pollfd_meta_t) * (_server->nfds + 1));
 
     if (!tmp_fds || !tmp_fdsm){
-        free(tmp_fds);
-        free(tmp_fdsm);
+        tmp_fds = myfree(tmp_fds);
+        tmp_fdsm = myfree(tmp_fdsm);
         return false;
     }
     _server->_fds = tmp_fds;
