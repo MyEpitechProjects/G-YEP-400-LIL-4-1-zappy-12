@@ -1,6 +1,6 @@
 ##
 ## EPITECH PROJECT, 2026
-## G-YEP-400 : ai/server_connection.py
+## G-YEP-400 : ai/connection.py
 ## File description:
 ## Connection to server for the 1st time
 ##

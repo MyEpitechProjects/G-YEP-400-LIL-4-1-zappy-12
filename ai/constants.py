@@ -1,6 +1,6 @@
 ##
 ## EPITECH PROJECT, 2026
-## G-YEP-400 : ai/variables.py
+## G-YEP-400 : ai/constants.py
 ## File description:
 ## Where global variable are stored
 ##

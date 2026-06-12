@@ -12,9 +12,9 @@ import sys
 
 # Function from other file import
 from ai.args_parser import parse_arguments
-from ai.server_connection import first_connection
+from ai.connection import first_connection
 from ai.trantorian import Trantorian
-from ai.brain import run_ai
+from ai.loop import run_ai
 
 def main(arguments): #arguments -> sys.argv (char **av C/C++ equivalent)
 
