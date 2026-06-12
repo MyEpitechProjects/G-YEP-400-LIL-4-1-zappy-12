@@ -114,6 +114,7 @@ static const cmd_t ia_commands[] = {
     {NULL, UNK_INVOCATION, protocol_ko, UNIT_NONE},
 };
 static const cmd_t gui_commands[] = {
+    {"sgt", CLIENT_TIME_REQ, protocol_time_unit, UNIT_NONE},
     {"msz", CLIENT_MAP_SIZE, protocol_map_size, UNIT_NONE},
     {"bct", CLIENT_TILE_CONTENT, protocol_tile, UNIT_NONE},
     {"mct", CLIENT_MAP_CONTENT, protocol_map_tiles, UNIT_NONE},

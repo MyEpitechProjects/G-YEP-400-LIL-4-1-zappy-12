@@ -13,6 +13,16 @@
     #include "tiles.h"
     #include "player.h"
     #include "egg.h"
+    #include "clock.h"
+
+    #define FOOD_SPAWN_UNIT 20
+    #define DENSITY_FOOD 50
+    #define DENSITY_LINEMATE 30
+    #define DENSITY_DERAUMERE 15
+    #define DENSITY_SIBUR 10
+    #define DENSITY_MENDIANE 10
+    #define DENSITY_PHIRAS 8
+    #define DENSITY_THYSTAME 5
 
 typedef enum unit_type_t {
     UNIT_NONE,
@@ -31,6 +41,15 @@ typedef enum unit_type_t {
     UNIT_RESPAWN_RESOURCES,
 } unit_type_t;
 
+typedef enum resource_type_t {
+    RES_LINEMATE = 1,
+    RES_DERAUMERE,
+    RES_SIBUR,
+    RES_MENDIANE,
+    RES_PHIRAS,
+    RES_THYSTAME,
+} resource_type_t;
+
 typedef struct unit_t {
     unit_type_t type;
     uint16_t value;
@@ -44,6 +63,7 @@ typedef struct zappy_t {
     player_t *players;
     uint64_t nb_eggs;
     egg_t *eggs;
+    myclock_t foodClock;
 } zappy_t;
 
 static const unit_t unit_values[] = {
@@ -64,9 +84,13 @@ static const unit_t unit_values[] = {
 
 typedef struct connection connection_t;
 
-time_t get_time_unit(connection_t *_server, unit_type_t type);
+uint64_t get_time_unit(connection_t *_server, unit_type_t type);
 
-time_t get_command_time(connection_t *_server, unit_type_t type);
+uint64_t get_command_time(connection_t *_server, unit_type_t type);
+
+uint64_t calculate_time_freq(connection_t *_server, uint64_t value);
+
+bool add_food_tile(connection_t *_server, zappy_t *zappy);
 
 
 char *string_create(char *base);

@@ -20,6 +20,7 @@ SRC =	src/server_push.c			\
 		src/clock.c					\
 		src/zappy_internal/timeunits.c	\
 		src/sys/my_memset.c			\
+		src/sys/randint.c			\
 		src/commands/function.c		\
 		src/commands/gui/protocol_start.c	\
 		src/commands/gui/protocol_bad_param.c	\
@@ -32,6 +33,7 @@ SRC =	src/server_push.c			\
 		src/commands/ia/protocol_start.c	\
 		src/commands/ia/protocol_bad_param.c	\
 		src/zappy_internal/zappy.c				\
+		src/zappy_internal/resources.c				\
 		src/string_util/create.c			\
 
 

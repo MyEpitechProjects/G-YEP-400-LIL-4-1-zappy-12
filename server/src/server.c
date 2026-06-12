@@ -39,7 +39,7 @@ bool accept_data(connection_t *_server, uint32_t i)
 static bool check_commands_time(connection_t *_server, uint32_t i,
     unit_type_t type)
 {
-    time_t target_time = get_command_time(_server, type);
+    uint64_t target_time = get_command_time(_server, type);
 
     if (type == UNIT_NONE)
         return true;

@@ -56,7 +56,7 @@ myclock_t *stop_clock(myclock_t *_clock)
     return _clock;
 }
 
-time_t get_elapsed(myclock_t *_clock)
+uint64_t get_elapsed(myclock_t *_clock)
 {
     if (!_clock || _clock->base == 0)
         return 0;

@@ -25,6 +25,6 @@ myclock_t *start_clock(myclock_t *_clock);
 
 myclock_t *stop_clock(myclock_t *_clock);
 
-time_t get_elapsed(myclock_t *_clock);
+uint64_t get_elapsed(myclock_t *_clock);
 
 #endif

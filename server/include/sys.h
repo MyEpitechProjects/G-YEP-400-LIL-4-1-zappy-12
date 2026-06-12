@@ -10,7 +10,10 @@
     #include <stdint.h>
     #include <stddef.h>
     #include <stdbool.h>
+    #include <stdlib.h>
+    #include <time.h>
 
 void my_memset(char *value, uint8_t byte, size_t size);
+uint64_t randint(uint64_t max);
 
 #endif

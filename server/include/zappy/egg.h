@@ -13,7 +13,7 @@
 
 typedef struct egg_t {
     pos_t pos;
-    uint64_t creatorIndex;
+    int64_t creatorIndex;
     char *team;
 } egg_t;
 
