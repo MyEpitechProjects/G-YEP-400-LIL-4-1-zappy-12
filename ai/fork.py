@@ -1,6 +1,6 @@
 ##
 ## EPITECH PROJECT, 2026
-## G-YEP-400 : ai/reproduction.py
+## G-YEP-400 : ai/fork.py
 ## File description:
 ## Reproduction: decide to fork, build child command, spawn child process
 ##
