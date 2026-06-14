@@ -105,22 +105,32 @@ def build_prepare_ritual_plan(level, inventory, current_tile):
     plan.append("Look")
     return plan
 
+def select_best_anchor(trantorian):
+    best_direction = None
+    best_token = trantorian.gather_token
+    for direction, text in trantorian.heard_calls:
+        parsed = parse_gather_call(text)
+        if parsed is None:
+            continue
+        other_team, other_level, other_token = parsed
+        if (other_team == trantorian.team_name
+                and other_level == trantorian.level
+                and direction != 0
+                and other_token > best_token):
+            best_token = other_token
+            best_direction = direction
+    trantorian.heard_calls = []
+    return best_direction
+
 def build_gather_plan(trantorian):
     """Make a call and stay fixed (anchor), or converge towards a stronger anchor."""
 
-    level = trantorian.level
-    token = trantorian.gather_token
-    call = f"{trantorian.team_name}:{level}:{token}"
-    broadcast = trantorian.last_broadcast
-    if broadcast is not None:
-        direction, text = broadcast
-        parsed = parse_gather_call(text)
-        if parsed is not None:
-            other_team, other_level, other_token = parsed
-            if (other_team == trantorian.team_name and other_level == level
-                    and direction != 0 and other_token > token):
-                trantorian.last_broadcast = None
-                return moves_toward_sound(direction) + ["Look"]
+    direction = select_best_anchor(trantorian)
+    if direction is not None:
+        trantorian.is_anchor = False
+        return moves_toward_sound(direction) + ["Look"]
+    trantorian.is_anchor = True
+    call = f"{trantorian.team_name}:{trantorian.level}:{trantorian.gather_token}"
     return ["Broadcast " + call, "Look"]
 
 def build_plan(trantorian):
@@ -148,8 +158,12 @@ def build_plan(trantorian):
             return plan
         return ["Forward", "Look"]
     if state == INCANT:
-        return ["Incantation"]
+        if trantorian.is_anchor:
+            return ["Incantation"]
+        return ["Look"]
     if state == PREPARE_RITUAL:
+        if not trantorian.is_anchor:
+            return ["Look"]
         plan = build_prepare_ritual_plan(level, inventory, current_tile)
         if plan:
             return plan

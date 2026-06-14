@@ -20,7 +20,8 @@ class Trantorian:
         self.inventory = {"food": 10, "linemate": 0, "deraumere": 0, "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0}
         self.available_slots = initial_slots
         self.pending_commands = 0
-        self.last_broadcast = None
+        self.heard_calls = []
+        self.is_anchor = True
         self.gather_token = random.randint(0, 999999)
         self.actions_since_fork = 0
 

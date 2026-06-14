@@ -22,7 +22,7 @@ def read_response(socket_file, trantorian, expecting_incantation):
             if line.startswith("message "):
                 broadcast = parse_broadcast(line)
                 if broadcast is not None:
-                    trantorian.last_broadcast = broadcast
+                    trantorian.heard_calls = (trantorian.heard_calls + [broadcast])[-20:]
             print(f"[async] {line}")
             continue
         if not expecting_incantation and is_incantation_event(line):
