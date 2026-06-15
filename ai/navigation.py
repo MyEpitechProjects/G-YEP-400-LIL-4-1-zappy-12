@@ -65,3 +65,14 @@ def step_forward(x, y, orientation, width, height):
     """Advance one tile in the facing direction, wrapping on the toroidal map."""
     dx, dy = FORWARD_DELTA[orientation]
     return (x + dx) % width, (y + dy) % height
+
+def turns_to_face(current, target):
+    """Minimal list of 'Right'/'Left' to rotate from current orientation to target."""
+    diff = (target - current) % 4
+    if diff == 0:
+        return []
+    if diff == 1:
+        return ["Right"]
+    if diff == 2:
+        return ["Right", "Right"]
+    return ["Left"]

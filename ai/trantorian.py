@@ -28,6 +28,7 @@ class Trantorian:
         self.x = 0
         self.y = 0
         self.orientation = 0
+        self.visited = {}
 
     def update_from_response(self, action, response, object_name=None):
         """Integrate the last server response into the agent's own state."""

@@ -10,6 +10,7 @@ from ai.rules import has_required_stones_in_inventory, missing_stone_visible, en
 from ai.navigation import distance_from_tile_index, build_move_plan, moves_toward_sound
 from ai.protocol import parse_gather_call
 from ai.fork import should_reproduce
+from ai.navigation import distance_from_tile_index, build_move_plan, moves_toward_sound, step_forward, turns_to_face
 
 def find_best_tile(vision, inventory, level):
     """Find the most valuable visible tile for the current state."""
@@ -133,6 +134,24 @@ def build_gather_plan(trantorian):
     call = f"{trantorian.team_name}:{trantorian.level}:{trantorian.gather_token}"
     return ["Broadcast " + call, "Look"]
 
+def explore_plan(trantorian):
+    """Frontier exploration: head toward the least-visited neighbouring tile."""
+    x, y, o = trantorian.x, trantorian.y, trantorian.orientation
+    w, h = trantorian.map_width, trantorian.map_height
+    trantorian.visited[(x, y)] = trantorian.visited.get((x, y), 0) + 1
+    best_orientation = o
+    best_score = None
+    for target_o in range(4):
+        nx, ny = step_forward(x, y, target_o, w, h)
+        turn_cost = (target_o - o) % 4
+        if turn_cost == 3:
+            turn_cost = 1
+        score = (trantorian.visited.get((nx, ny), 0), turn_cost)
+        if best_score is None or score < best_score:
+            best_score = score
+            best_orientation = target_o
+    return turns_to_face(o, best_orientation) + ["Forward", "Look"]
+
 def build_plan(trantorian):
     """Build the next action plan from the current AI state."""
 
@@ -156,7 +175,7 @@ def build_plan(trantorian):
             plan = build_move_plan(best_tile)
             plan.append("Look")
             return plan
-        return ["Forward", "Look"]
+        return explore_plan(trantorian) 
     if state == INCANT:
         if trantorian.is_anchor:
             return ["Incantation"]
@@ -177,9 +196,9 @@ def build_plan(trantorian):
             plan = build_move_plan(best_tile)
             plan.append("Look")
             return plan
-        return ["Forward", "Look"]
+        return explore_plan(trantorian)
     if state == EXPLORE:
-        return ["Forward", "Look"]
+        return explore_plan(trantorian)
     if state == GATHER:
         return build_gather_plan(trantorian)
     return ["Look"]
