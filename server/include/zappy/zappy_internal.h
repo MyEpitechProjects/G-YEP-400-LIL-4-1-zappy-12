@@ -97,13 +97,14 @@ bool add_food_tile(connection_t *_server, zappy_t *zappy);
 bool spawn_food(connection_t *_server, zappy_t *zappy);
 
 
-char *string_create(char *base);
-char *string_append(char *string, char *append, bool spaced);
-char *string_append_int(char *string, int64_t value, bool spaced);
-char *string_append_uint(char *string, uint64_t value, bool spaced);
+char *string_create(const char *base);
+char *string_append(char *string, const char *append, bool spaced);
+char *string_append_int(char *string, const int64_t value, bool spaced);
+char *string_append_uint(char *string, const uint64_t value, bool spaced);
 char *string_end(char *string);
 
 bool zappy(connection_t *_server, zappy_t *zappy);
+bool need_food_respawn(connection_t *_server, zappy_t *zappy);
 pos_t *set_pos_xy(pos_t *pos, uint64_t x, uint64_t y);
 uint64_t tile_pos_to_index(connection_t *_server, uint64_t x, uint64_t y);
 egg_t *get_egg_by_team(connection_t *_server, char *team);
@@ -111,6 +112,7 @@ player_t *get_player_by_id(connection_t *_server, uint64_t id);
 player_t *get_last_player(connection_t *_server);
 egg_t *get_last_egg(connection_t *_server);
 uint64_t get_available_eggs(connection_t *_server, char *team);
+uint64_t **set_resources_array(uint64_t **src, inventory_t *inv);
 
 
 uint64_t extract_num(char *ptr, char **endptr, int base, bool ok);
@@ -152,6 +154,11 @@ bool intern_protocol_graphics_egg_layed(connection_t *_server, uint32_t i,
     egg_t *egg);
 bool intern_protocol_graphics_egg_laying(connection_t *_server, uint32_t i,
     player_t *player);
+bool intern_protocol_graphic_drop(connection_t *_server, uint32_t i,
+    player_t *player, uint8_t resource_index);
+bool intern_protocol_graphic_collect(connection_t *_server, uint32_t i,
+    player_t *player, uint8_t resource_index);
+bool intern_protocol_map_tile(connection_t *_server, uint32_t i, tile_t *tile);
 
 
 
@@ -179,6 +186,10 @@ bool intern_protocol_ia_broadcast(connection_t *_server, uint32_t i,
     char *msg, player_t *sender);
 bool protocol_ia_fork(connection_t *_server, uint32_t i,
     char **command);
+bool protocol_ia_take(connection_t *_server, uint32_t i,
+    char **command);
+bool protocol_ia_set(connection_t *_server, uint32_t i,
+    char **command);
 
 bool trigger_graphic_player_login(connection_t *_server, player_t *player,
     egg_t *egg);
@@ -189,8 +200,12 @@ bool trigger_broadcast(connection_t *_server, uint64_t me,
 bool trigger_graphic_player_move(connection_t *_server, player_t *player);
 bool trigger_graphic_egg_laying(connection_t *_server, player_t *player);
 bool trigger_graphic_egg_layed(connection_t *_server, egg_t *egg);
-
-
+bool trigger_graphic_drop(connection_t *_server, player_t *player,
+    uint8_t resources_index);
+bool trigger_graphic_collect(connection_t *_server, player_t *player,
+    uint8_t resources_index);
+bool trigger_graphic_tile_change(connection_t *_server,
+    tile_t *tile);
 
 bool protocol_ko(connection_t *_server, uint32_t i, char **command);
 bool protocol_ok(connection_t *_server, uint32_t i, char **command);

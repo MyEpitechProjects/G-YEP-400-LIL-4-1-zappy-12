@@ -12,7 +12,7 @@
     #include "position.h"
 
 typedef struct tile_t {
-    bool isTile;
+    pos_t pos;
     inventory_t inventory;
 } tile_t;
 

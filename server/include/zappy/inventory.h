@@ -9,15 +9,21 @@
     #define __INVENTORY__
     #include <stdint.h>
     #include <stdbool.h>
+    #define NUMBER_RESOURCES 7
 
 typedef struct inventory_t {
-    uint32_t food;
-    uint32_t linemate;
-    uint32_t deraumere;
-    uint32_t sibur;
-    uint32_t mendiane;
-    uint32_t phiras;
-    uint32_t thystame;
+    uint64_t food;
+    uint64_t linemate;
+    uint64_t deraumere;
+    uint64_t sibur;
+    uint64_t mendiane;
+    uint64_t phiras;
+    uint64_t thystame;
 } inventory_t;
+
+static const char *const food_names[] = {
+    "food", "linemate", "deraumere",
+    "sibur", "mendiane", "phiras", "thystame", NULL
+};
 
 #endif

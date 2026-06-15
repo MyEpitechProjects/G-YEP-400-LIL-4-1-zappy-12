@@ -43,8 +43,10 @@ static bool check_commands_time(connection_t *_server, uint32_t i,
 
     if (type == UNIT_NONE)
         return true;
-    if (_server->_fdsm[i].clock.base == 0)
+    if (_server->_fdsm[i].clock.base == 0){
         start_clock(&_server->_fdsm[i].clock);
+        _server->_fdsm[i].targetElapsed = target_time;
+    }
     if (get_elapsed(&_server->_fdsm[i].clock) < target_time)
         return false;
     return true;
@@ -60,6 +62,7 @@ static bool run_command(connection_t *_server, uint32_t i, char **command,
     if (!check_commands_time(_server, i, type))
         return true;
     reset_clock(&_server->_fdsm[i].clock);
+    _server->_fdsm[i].targetElapsed = 0;
     if (func)
         func(_server, i, command);
     pop_buffer(_server, i, _server->_fdsm[i].buffer);

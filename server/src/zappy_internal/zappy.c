@@ -20,7 +20,7 @@ bool spawn_food(connection_t *_server, zappy_t *zappy)
     uint64_t unit = calculate_time_freq(_server, FOOD_SPAWN_UNIT);
     bool bypass = false;
 
-    if (!zappy->tiles)
+    if (!zappy->tiles || !need_food_respawn(_server, zappy))
         return true;
     if (zappy->foodClock.base == 0){
         start_clock(&zappy->foodClock);

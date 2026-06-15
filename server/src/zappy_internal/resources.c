@@ -83,7 +83,7 @@ static inventory_t *get_density_inv(connection_t *_server, zappy_t *zappy,
     return inv;
 }
 
-static inventory_t *get_food(connection_t *_server, zappy_t *zappy,
+static inventory_t *get_tile_food(connection_t *_server, zappy_t *zappy,
     inventory_t *inv)
 {
     for (uint64_t i = 0; i < (_server->arguments->width *
@@ -101,13 +101,13 @@ static inventory_t *get_food(connection_t *_server, zappy_t *zappy,
 
 static inventory_t *food_soustraction(inventory_t *inv, inventory_t *inv2)
 {
-    inv->food -= inv2->food;
-    inv->linemate -= inv2->linemate;
-    inv->deraumere -= inv2->deraumere;
-    inv->sibur -= inv2->sibur;
-    inv->mendiane -= inv2->mendiane;
-    inv->phiras -= inv2->phiras;
-    inv->thystame -= inv2->thystame;
+    inv->food = subsctract(inv->food, inv2->food);
+    inv->linemate = subsctract(inv->linemate, inv2->linemate);
+    inv->deraumere = subsctract(inv->deraumere, inv2->deraumere);
+    inv->sibur = subsctract(inv->sibur, inv2->sibur);
+    inv->mendiane = subsctract(inv->mendiane, inv2->mendiane);
+    inv->phiras = subsctract(inv->phiras, inv2->phiras);
+    inv->thystame = subsctract(inv->thystame, inv2->thystame);
     return inv;
 }
 
@@ -117,8 +117,23 @@ bool add_food_tile(connection_t *_server, zappy_t *zappy)
     inventory_t inv2 = {0};
 
     get_density_inv(_server, zappy, &inv);
-    get_food(_server, zappy, &inv2);
+    get_tile_food(_server, zappy, &inv2);
     food_soustraction(&inv, &inv2);
     dispatch_inventory(_server, zappy, &inv);
     return true;
+}
+
+bool need_food_respawn(connection_t *_server, zappy_t *zappy)
+{
+    inventory_t inv = {0};
+    inventory_t inv2 = {0};
+
+    get_density_inv(_server, zappy, &inv);
+    get_tile_food(_server, zappy, &inv2);
+    if (inv.food > inv2.food || inv.deraumere > inv2.deraumere ||
+        inv.linemate > inv2.linemate || inv.mendiane > inv2.mendiane ||
+        inv.phiras > inv2.phiras || inv.sibur > inv2.sibur ||
+        inv.thystame > inv2.thystame)
+        return true;
+    return false;
 }

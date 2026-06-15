@@ -50,13 +50,13 @@ static void append_resource(char **result, char *name,
 
 static void append_all_resources(char **result, tile_t *tile)
 {
-    append_resource(result, "food", tile->inventory.food);
-    append_resource(result, "linemate", tile->inventory.linemate);
-    append_resource(result, "deraumere", tile->inventory.deraumere);
-    append_resource(result, "sibur", tile->inventory.sibur);
-    append_resource(result, "mendiane", tile->inventory.mendiane);
-    append_resource(result, "phiras", tile->inventory.phiras);
-    append_resource(result, "thystame", tile->inventory.thystame);
+    append_resource(result, " food", tile->inventory.food);
+    append_resource(result, " linemate", tile->inventory.linemate);
+    append_resource(result, " deraumere", tile->inventory.deraumere);
+    append_resource(result, " sibur", tile->inventory.sibur);
+    append_resource(result, " mendiane", tile->inventory.mendiane);
+    append_resource(result, " phiras", tile->inventory.phiras);
+    append_resource(result, " thystame", tile->inventory.thystame);
 }
 
 static char *tile_to_string(connection_t *_server,
@@ -71,7 +71,7 @@ static char *tile_to_string(connection_t *_server,
             continue;
         if (z->players[p].pos.x != x || z->players[p].pos.y != y)
             continue;
-        result = string_append(result, "player", false);
+        result = string_append(result, " player", false);
     }
     append_all_resources(&result, tile);
     return result;

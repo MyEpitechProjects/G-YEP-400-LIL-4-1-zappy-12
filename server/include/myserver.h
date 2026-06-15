@@ -30,6 +30,7 @@ typedef struct pollfd_meta {
     client_type_t client_type;
     uint64_t id;
     myclock_t clock;
+    uint64_t targetElapsed;
     char *buffer;
 } pollfd_meta_t;
 
@@ -108,11 +109,14 @@ bool pop_buffer(connection_t *_server, uint32_t i, char *input);
 
 int free_server(connection_t *_server, bool code);
 unsigned int list_len(char **argv);
+uint64_t get_buffer_length(char *input);
 
 unit_type_t get_command_unit_type(invocation_t invoke, const cmd_t *functions);
 invocation_t get_command_invoke(char *command, const cmd_t *functions);
 cmd_handler_t get_command_function(invocation_t invoke,
     const cmd_t *functions);
+int64_t get_timedout(connection_t *_server);
+bool client_disconnect(connection_t *_server, uint32_t *i);
 
 static const cmd_t ia_commands[] = {
     {"Forward", SERVER_IA_FORWARD, protocol_ia_move, UNIT_FORWARD},
@@ -124,6 +128,8 @@ static const cmd_t ia_commands[] = {
         UNIT_CONNECT_NBR},
     {"Inventory", SERVER_IA_INVENTORY, protocol_ia_inventory, UNIT_INVENTORY},
     {"Fork", SERVER_IA_FORK, protocol_ia_fork, UNIT_FORK},
+    {"Set", SERVER_IA_SET, protocol_ia_set, UNIT_SET},
+    {"Take", SERVER_IA_TAKE, protocol_ia_take, UNIT_TAKE},
     {NULL, UNK_INVOCATION, protocol_ko, UNIT_NONE},
 };
 

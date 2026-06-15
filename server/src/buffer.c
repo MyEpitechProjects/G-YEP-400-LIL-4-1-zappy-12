@@ -44,7 +44,7 @@ bool complete_buffer(connection_t *_server, uint32_t *i)
     memset(req, 0, 1024);
     rd = read(_server->_fds[*i].fd, req, 1023);
     if (rd == 0)
-        return pop_poller(_server, i);
+        return client_disconnect(_server, i);
     if (rd < 0)
         return true;
     if (!_server->_fdsm[*i].buffer) {
@@ -55,7 +55,7 @@ bool complete_buffer(connection_t *_server, uint32_t *i)
     return true;
 }
 
-static uint64_t get_buffer_length(char *input)
+uint64_t get_buffer_length(char *input)
 {
     if (!input)
         return 0;

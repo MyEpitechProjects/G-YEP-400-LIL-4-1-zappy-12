@@ -7,7 +7,7 @@
 
 #include "myserver.h"
 
-char *string_create(char *base)
+char *string_create(const char *base)
 {
     char *string = malloc(1);
 
@@ -19,7 +19,7 @@ char *string_create(char *base)
     return string;
 }
 
-char *string_append(char *string, char *append, bool spaced)
+char *string_append(char *string, const char *append, bool spaced)
 {
     char *bak = string;
 
@@ -37,7 +37,7 @@ char *string_append(char *string, char *append, bool spaced)
     return string;
 }
 
-char *string_append_int(char *string, int64_t value, bool spaced)
+char *string_append_int(char *string, const int64_t value, bool spaced)
 {
     char str[20];
 
@@ -45,7 +45,7 @@ char *string_append_int(char *string, int64_t value, bool spaced)
     return string_append(string, str, spaced);
 }
 
-char *string_append_uint(char *string, uint64_t value, bool spaced)
+char *string_append_uint(char *string, const uint64_t value, bool spaced)
 {
     char str[20];
 
