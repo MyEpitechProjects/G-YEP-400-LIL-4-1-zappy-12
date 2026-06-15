@@ -64,8 +64,25 @@ static bool check_help(int argc, char **argv)
     return false;
 }
 
-bool check_args(arguments_t *args)
+static bool default_freq(int argc, char **argv)
 {
+    int opt = 0;
+
+    while (opt != -1) {
+        opt = getopt(argc, argv, "f:");
+        if (opt == -1)
+            break;
+        if (opt == '?' || opt == 'f')
+            return false;
+    }
+    return true;
+}
+
+bool check_args(arguments_t *args, int argc, char **argv)
+{
+    if (default_freq(argc, argv)){
+        args->freq = 100;
+    }
     if (args->port > 0 && args->freq > 0 && args->height > 0 &&
         args->client_number > 0 && args->team_number > 0 && args->width > 0){
         return true;
@@ -91,7 +108,7 @@ int parse_arg(int argc, char **argv, arguments_t *args)
             return 84;
         opt_switch(args, opt, argc, argv);
     }
-    if (!check_args(args))
+    if (!check_args(args, argc, argv))
         return 84;
     return 0;
 }

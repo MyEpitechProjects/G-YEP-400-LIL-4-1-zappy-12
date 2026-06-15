@@ -37,6 +37,7 @@ bool spawn_food(connection_t *_server, zappy_t *zappy)
 static bool set_eggs(connection_t *_server, zappy_t *zappy)
 {
     uint64_t count = 0;
+    uint64_t count2 = 0;
 
     for (uint64_t i = 0; i < zappy->nb_eggs; i++){
         zappy->eggs[i].index = i;
@@ -45,8 +46,11 @@ static bool set_eggs(connection_t *_server, zappy_t *zappy)
         zappy->eggs[i].pos.y = randint(_server->arguments->height);
         zappy->eggs[i].team = _server->arguments->teams_names[count];
         zappy->eggs[i].o = randint(ORIENTATION_WEST + 1);
-        if ((i + 1) == _server->arguments->client_number)
+        if ((count2 + 1) == _server->arguments->client_number){
             count++;
+            count2 = 0;
+        } else
+            count2++;
     }
     return true;
 }

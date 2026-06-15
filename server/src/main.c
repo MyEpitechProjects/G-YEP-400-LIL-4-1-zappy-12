@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     int sfd;
     int argCode = parse_arg(argc, argv, &arguments);
 
-    if (argCode != 0 || !check_args(&arguments))
+    if (argCode != 0 || !check_args(&arguments, argc, argv))
         return argCode;
     sigemptyset(&mask);
     sigaddset(&mask, SIGINT);

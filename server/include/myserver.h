@@ -71,7 +71,7 @@ typedef struct cmd_t {
 
 char *send_string(int fd, char *resp);
 
-bool check_args(arguments_t *args);
+bool check_args(arguments_t *args, int argc, char **argv);
 
 bool free_array(void **arr);
 

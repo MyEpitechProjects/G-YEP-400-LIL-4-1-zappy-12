@@ -13,6 +13,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+static uint64_t get_buffer_lines(char *input)
+{
+    uint64_t count = 0;
+
+    if (!input)
+        return 0;
+    for (uint64_t i = 0; input[i] != '\0'; i++) {
+        if (input[i] == '\n')
+            count++;
+    }
+    return count;
+}
+
 static bool new_buffer(connection_t *_server, uint32_t i, char *req)
 {
     _server->_fdsm[i].buffer = calloc(strlen(req) + 1, sizeof(char));
@@ -46,6 +59,9 @@ bool complete_buffer(connection_t *_server, uint32_t *i)
     if (rd == 0)
         return client_disconnect(_server, i);
     if (rd < 0)
+        return true;
+    if (_server->_fdsm[*i].client_type == CLIENT_IA &&
+        get_buffer_lines(_server->_fdsm[*i].buffer) >= 10)
         return true;
     if (!_server->_fdsm[*i].buffer) {
         new_buffer(_server, *i, req);
