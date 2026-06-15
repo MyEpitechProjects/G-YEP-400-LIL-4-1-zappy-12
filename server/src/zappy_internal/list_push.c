@@ -10,7 +10,6 @@
 #include "zappy/zappy_internal.h"
 #include "sys.h"
 
-
 void *list_push(void *original, uint64_t *size, uint64_t itemSize, bool *status)
 {
     void *new = NULL;

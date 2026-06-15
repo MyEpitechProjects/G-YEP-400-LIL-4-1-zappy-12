@@ -9,15 +9,6 @@
 #include "myserver.h"
 #include "zappy/zappy_internal.h"
 
-player_t *get_player(connection_t *_server, uint64_t index)
-{
-    for (uint64_t i = 0; i < _server->zappy.nb_players; i++){
-        if (_server->zappy.players[i].index == index)
-            return &_server->zappy.players[i];
-    }
-    return NULL;
-}
-
 bool intern_protocol_player_connected(connection_t *_server, uint32_t i,
     player_t *player)
 {
@@ -27,7 +18,7 @@ bool intern_protocol_player_connected(connection_t *_server, uint32_t i,
     string = string_append_uint(string, player->index, true);
     string = string_append_uint(string, player->pos.x, true);
     string = string_append_uint(string, player->pos.y, true);
-    string = string_append_uint(string, player->o, true);
+    string = string_append_uint(string, player->o + 1, true);
     string = string_append_uint(string, player->level, true);
     string = string_append(string, player->team, true);
     string = send_string(_server->_fds[i].fd, string);

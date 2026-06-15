@@ -115,6 +115,15 @@ cmd_handler_t get_command_function(invocation_t invoke,
     const cmd_t *functions);
 
 static const cmd_t ia_commands[] = {
+    {"Forward", SERVER_IA_FORWARD, protocol_ia_move, UNIT_FORWARD},
+    {"Left", SERVER_IA_LEFT, protocol_ia_rotate_left, UNIT_TURN},
+    {"Right", SERVER_IA_RIGHT, protocol_ia_rotate_right, UNIT_TURN},
+    {"Look", SERVER_IA_LOOK, protocol_ia_look, UNIT_LOOK},
+    {"Broadcast", SERVER_IA_BROADCAST, protocol_ia_broadcast, UNIT_BROADCAST},
+    {"Connect_nbr", SERVER_IA_CONNECT_NBR, protocol_ia_connect_nbr,
+        UNIT_CONNECT_NBR},
+    {"Inventory", SERVER_IA_INVENTORY, protocol_ia_inventory, UNIT_INVENTORY},
+    {"Fork", SERVER_IA_FORK, protocol_ia_fork, UNIT_FORK},
     {NULL, UNK_INVOCATION, protocol_ko, UNIT_NONE},
 };
 

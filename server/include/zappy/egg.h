@@ -15,6 +15,7 @@ typedef struct egg_t {
     pos_t pos;
     uint64_t index;
     int64_t creatorIndex;
+    orientation_t o;
     char *team;
     bool taken;
 } egg_t;

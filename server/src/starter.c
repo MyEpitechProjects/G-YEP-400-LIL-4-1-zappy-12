@@ -65,20 +65,21 @@ static uint64_t get_timedout(connection_t *_server)
 static bool check_eat(connection_t *_server, uint32_t *i)
 {
     uint64_t eatUnit = calculate_time_freq(_server, EAT_UNIT);
-    uint64_t id = _server->_fdsm[*i].id;
+    player_t *me = get_player_by_id(_server, _server->_fdsm[*i].id);
 
     if (get_elapsed(
-            &_server->zappy.players[id].eatClock) < eatUnit)
+            &me->eatClock) < eatUnit)
         return false;
-    reset_clock(&_server->zappy.players[id].eatClock);
-    start_clock(&_server->zappy.players[id].eatClock);
-    if (_server->zappy.players[id].inventory.food == 0){
-        _server->zappy.players[id].dead = true;
-        trigger_graphic_player_death(_server, &_server->zappy.players[id]);
+    reset_clock(&me->eatClock);
+    start_clock(&me->eatClock);
+    if (me->inventory.food == 0){
+        me->dead = true;
+        protocol_ia_death(_server, *i, NULL);
+        trigger_graphic_player_death(_server, me);
         return pop_poller(_server, i);
     }
-    _server->zappy.players[id].inventory.food--;
-    trigger_graphic_player_eat(_server, &_server->zappy.players[id]);
+    me->inventory.food--;
+    trigger_graphic_player_eat(_server, me);
     return false;
 }
 

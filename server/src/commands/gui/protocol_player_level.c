@@ -32,7 +32,7 @@ bool protocol_player_level(connection_t *_server, uint32_t i, char **command)
     index = extract_num(command[1], &end, 10, true);
     if (*end != '\0')
         return protocol_graphic_bad_param(_server, i, NULL);
-    player = get_player(_server, index);
+    player = get_player_by_id(_server, index);
     if (!player)
         return protocol_graphic_bad_param(_server, i, NULL);
     return intern_protocol_player_level(_server, i, player);

@@ -44,6 +44,7 @@ static bool set_eggs(connection_t *_server, zappy_t *zappy)
         zappy->eggs[i].pos.x = randint(_server->arguments->width);
         zappy->eggs[i].pos.y = randint(_server->arguments->height);
         zappy->eggs[i].team = _server->arguments->teams_names[count];
+        zappy->eggs[i].o = randint(ORIENTATION_WEST + 1);
         if ((i + 1) == _server->arguments->client_number)
             count++;
     }

@@ -11,7 +11,6 @@
     #include "inventory.h"
 
 typedef enum orientation_t {
-    ORIENTATION_NONE,
     ORIENTATION_NORTH,
     ORIENTATION_EST,
     ORIENTATION_SOUTH,

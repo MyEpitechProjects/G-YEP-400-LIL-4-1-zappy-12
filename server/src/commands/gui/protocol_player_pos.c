@@ -19,7 +19,7 @@ bool intern_protocol_player_pos(connection_t *_server, uint32_t i,
     string = string_append_uint(string, player->index, true);
     string = string_append_uint(string, player->pos.x, true);
     string = string_append_uint(string, player->pos.y, true);
-    string = string_append_uint(string, player->o, true);
+    string = string_append_uint(string, player->o + 1, true);
     string = send_string(_server->_fds[i].fd, string);
     return true;
 }
@@ -35,7 +35,7 @@ bool protocol_player_pos(connection_t *_server, uint32_t i, char **command)
     index = extract_num(command[1], &end, 10, true);
     if (*end != '\0')
         return protocol_graphic_bad_param(_server, i, NULL);
-    player = get_player(_server, index);
+    player = get_player_by_id(_server, index);
     if (!player)
         return protocol_graphic_bad_param(_server, i, NULL);
     return intern_protocol_player_pos(_server, i, player);

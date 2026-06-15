@@ -26,8 +26,17 @@ bool protocol_graphic_start(connection_t *_server, uint32_t i, char **command)
     protocol_time_unit(_server, i, command);
     protocol_map_tiles(_server, i, command);
     protocol_teams(_server, i, command);
-    for (uint64_t w = 0; w < _server->zappy.nb_players; w++)
+    for (uint64_t w = 0; w < _server->zappy.nb_eggs; w++){
+        if (_server->zappy.eggs[w].taken)
+            continue;
+        trigger_graphic_egg_layed(_server,
+            &_server->zappy.eggs[w]);
+    }
+    for (uint64_t w = 0; w < _server->zappy.nb_players; w++){
+        if (_server->zappy.players[w].dead)
+            continue;
         intern_protocol_player_connected(_server, i,
             &_server->zappy.players[w]);
+    }
     return true;
 }
