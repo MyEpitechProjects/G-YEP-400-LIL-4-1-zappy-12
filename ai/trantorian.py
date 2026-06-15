@@ -9,6 +9,7 @@ import random
 
 from ai.protocol import parse_inventory, parse_look
 from ai.navigation import step_forward, turn_right, turn_left
+from ai.constants import EXPLORE
 
 class Trantorian:
 
@@ -22,7 +23,7 @@ class Trantorian:
         self.available_slots = initial_slots
         self.pending_commands = 0
         self.heard_calls = []
-        self.is_anchor = True
+        self.is_anchor = False
         self.gather_token = random.randint(0, 999999)
         self.actions_since_fork = 0
         self.x = 0
@@ -30,6 +31,20 @@ class Trantorian:
         self.orientation = 0
         self.visited = {}
         self.last_incant_failed = False
+        self.state = EXPLORE
+        self.anchor_token = None
+        self.gather_silence = 0
+        self.anchor_confirmations = 0
+
+    def reset_gather_state(self):
+        """Reset gathering state after an incantation or abandoned gathering."""
+
+        self.state = EXPLORE
+        self.is_anchor = True
+        self.anchor_token = None
+        self.gather_silence = 0
+        self.anchor_confirmations = 0
+        self.heard_calls = []
 
     def update_from_response(self, action, response, object_name=None):
         """Integrate the last server response into the agent's own state."""
@@ -52,6 +67,7 @@ class Trantorian:
                 level = response.split("Current level:")[-1].strip()
                 if level.isdigit():
                     self.level = int(level)
+                    self.reset_gather_state()
                 self.last_incant_failed = False
             else:
                 self.last_incant_failed = True

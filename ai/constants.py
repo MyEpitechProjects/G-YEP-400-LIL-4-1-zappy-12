@@ -5,13 +5,16 @@
 ## Where global variable are stored
 ##
 
-FOOD_LOW_LIMIT = 5
+FOOD_LOW_LIMIT = 7
 SURVIVE = "SURVIVE"
 INCANT = "INCANT"
 PREPARE_RITUAL = "PREPARE_RITUAL"
 COLLECT_STONE = "COLLECT_STONE"
 EXPLORE = "EXPLORE"
 GATHER = "GATHER"
+FOLLOW_GATHER = "FOLLOW_GATHER"
+WAIT_RITUAL = "WAIT_RITUAL"
+
 # requirements dict with the level to be reached  : nb_players - linemate - deraumere - sibur - mendiane - phiras - thystame
 REQUIREMENTS = {
     2: {"players": 1, "linemate": 1, "deraumere": 0, "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0},
@@ -30,5 +33,7 @@ DISTANCE_PENALTY = 10
 CURRENT_TILE_BONUS = 5
 COMFORTABLE_FOOD = 10
 FORK_COOLDOWN = 30
-PIPELINE_CAP = 7
+PIPELINE_CAP = 1
 CONNECT_NBR_PERIOD = 30
+GATHER_TIMEOUT = 8
+ANCHOR_CONFIRMATION_ROUNDS = 2
