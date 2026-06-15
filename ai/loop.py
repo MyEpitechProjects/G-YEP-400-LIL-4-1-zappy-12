@@ -9,7 +9,7 @@ from ai.trantorian import Trantorian
 from ai.protocol import is_async_message, is_incantation_event, parse_broadcast
 from ai.strategy import build_plan
 from ai.fork import spawn_child
-from ai.constants import PIPELINE_CAP
+from ai.constants import PIPELINE_CAP, CONNECT_NBR_PERIOD
 
 def send_command(socket_file, command):
     socket_file.write(command + "\n")
@@ -81,13 +81,18 @@ def execute_plan(socket_file, trantorian, plan):
 def run_ai(trantorian: Trantorian, socket_file):
     """Run the main AI loop and communicate with the server."""
     since_inventory = 0
+    since_connect = 0
     while True:
         if since_inventory >= 20:
             plan = ["Inventory"]
             since_inventory = 0
+        elif since_connect >= CONNECT_NBR_PERIOD:
+            plan = ["Connect_nbr"]
+            since_connect = 0
         else:
             plan = build_plan(trantorian)
         alive, executed = execute_plan(socket_file, trantorian, plan)
         if not alive:
             break
         since_inventory += executed
+        since_connect += executed

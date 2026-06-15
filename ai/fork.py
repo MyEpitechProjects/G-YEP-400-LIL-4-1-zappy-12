@@ -10,9 +10,14 @@ import subprocess
 from ai.constants import COMFORTABLE_FOOD, FORK_COOLDOWN
 
 def should_reproduce(trantorian):
-    """Fork only if food is comfortable and the cooldown has elapsed."""
+    """Fork only if food is comfortable, cooldown elapsed, and no free slot is already waiting (avoid stacking empty eggs faster than we fill them)."""
     food = trantorian.inventory.get("food", 0)
-    return food >= COMFORTABLE_FOOD and trantorian.actions_since_fork >= FORK_COOLDOWN
+    if food < COMFORTABLE_FOOD or trantorian.actions_since_fork < FORK_COOLDOWN:
+        return False
+    slots = trantorian.available_slots
+    if slots is not None and slots > 0:
+        return False
+    return True
 
 def child_command(trantorian):
     return [trantorian.binary, "-p", str(trantorian.port), "-n", trantorian.team_name, "-h", trantorian.machine]
