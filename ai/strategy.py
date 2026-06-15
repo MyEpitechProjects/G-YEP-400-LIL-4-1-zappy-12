@@ -177,9 +177,13 @@ def build_plan(trantorian):
             return plan
         return explore_plan(trantorian) 
     if state == INCANT:
-        if trantorian.is_anchor:
-            return ["Incantation"]
-        return ["Look"]
+        if not trantorian.is_anchor:
+            return ["Look"]
+        required = REQUIREMENTS.get(level + 1, {}).get("players", 0)
+        if trantorian.last_incant_failed and current_tile.get("player", 0) > required:
+            trantorian.last_incant_failed = False
+            return ["Eject", "Look"]
+        return ["Incantation"]
     if state == PREPARE_RITUAL:
         if not trantorian.is_anchor:
             return ["Look"]

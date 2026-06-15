@@ -29,6 +29,7 @@ class Trantorian:
         self.y = 0
         self.orientation = 0
         self.visited = {}
+        self.last_incant_failed = False
 
     def update_from_response(self, action, response, object_name=None):
         """Integrate the last server response into the agent's own state."""
@@ -51,6 +52,9 @@ class Trantorian:
                 level = response.split("Current level:")[-1].strip()
                 if level.isdigit():
                     self.level = int(level)
+                self.last_incant_failed = False
+            else:
+                self.last_incant_failed = True
             self.vision = []
         elif action == "Take":
             if response == "ok" and object_name:
