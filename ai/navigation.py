@@ -5,6 +5,9 @@
 ## Geometry helpers: tile index -> moves, sound direction -> moves
 ##
 
+# Orientation as an index: 0=N, 1=E, 2=S, 3=W. Deltas applied on a Forward.
+FORWARD_DELTA = [(0, -1), (1, 0), (0, 1), (-1, 0)]
+
 def distance_from_tile_index(tile_index):
     """Estimate distance between player and a visible tile index."""
 
@@ -49,3 +52,16 @@ def moves_toward_sound(direction):
     if direction in (6, 7, 8):
         return ["Right", "Forward"]
     return []
+
+def turn_right(orientation):
+    """90 deg clockwise: N -> E -> S -> W -> N."""
+    return (orientation + 1) % 4
+
+def turn_left(orientation):
+    """90 deg counter-clockwise: N -> W -> S -> E -> N."""
+    return (orientation - 1) % 4
+
+def step_forward(x, y, orientation, width, height):
+    """Advance one tile in the facing direction, wrapping on the toroidal map."""
+    dx, dy = FORWARD_DELTA[orientation]
+    return (x + dx) % width, (y + dy) % height

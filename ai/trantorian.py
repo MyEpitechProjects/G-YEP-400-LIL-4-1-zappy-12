@@ -8,6 +8,7 @@
 import random
 
 from ai.protocol import parse_inventory, parse_look
+from ai.navigation import step_forward, turn_right, turn_left
 
 class Trantorian:
 
@@ -24,6 +25,9 @@ class Trantorian:
         self.is_anchor = True
         self.gather_token = random.randint(0, 999999)
         self.actions_since_fork = 0
+        self.x = 0
+        self.y = 0
+        self.orientation = 0
 
     def update_from_response(self, action, response, object_name=None):
         """Integrate the last server response into the agent's own state."""
@@ -55,7 +59,19 @@ class Trantorian:
             if response == "ok" and object_name:
                 self.inventory[object_name] = max(0, self.inventory.get(object_name, 0) - 1)
             self.vision = []
-        elif action in ["Forward", "Right", "Left", "Eject"]:
+        elif action == "Forward":
+            if response == "ok":
+                self.x, self.y = step_forward(self.x, self.y, self.orientation, self.map_width, self.map_height)
+            self.vision = []
+        elif action == "Right":
+            if response == "ok":
+                self.orientation = turn_right(self.orientation)
+            self.vision = []
+        elif action == "Left":
+            if response == "ok":
+                self.orientation = turn_left(self.orientation)
+            self.vision = []
+        elif action == "Eject":
             self.vision = []
         elif action == "Fork":
             self.available_slots = None
