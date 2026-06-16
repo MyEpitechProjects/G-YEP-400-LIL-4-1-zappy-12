@@ -265,10 +265,10 @@ def build_plan(trantorian):
     if state == INCANT:
         if not owns_anchor_role(trantorian):
             return ["Look"]
-        required = REQUIREMENTS.get(level + 1, {}).get("players", 0)
-        if trantorian.last_incant_failed and current_tile.get("player", 0) > required:
+        if trantorian.last_incant_failed:
             trantorian.last_incant_failed = False
-            return ["Eject", "Look"]
+            call = (f"{trantorian.team_name}:"f"{trantorian.level}:"f"{trantorian.gather_token}")
+            return ["Broadcast " + call, "Look"]
         return ["Incantation"]
     if state == PREPARE_RITUAL:
         if not owns_anchor_role(trantorian):

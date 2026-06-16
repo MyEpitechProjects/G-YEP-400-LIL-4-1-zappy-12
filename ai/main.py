@@ -42,8 +42,14 @@ def main(arguments): #arguments -> sys.argv (char **av C/C++ equivalent)
     except KeyboardInterrupt:
         print("\nDisconnection requested (Ctrl+C).")
     finally:
-        socket_file.close()
-        client_socket.close()
+        try:
+            socket_file.close()
+        except (BrokenPipeError, ConnectionResetError, OSError):
+            pass
+        try:
+            client_socket.close()
+        except OSError:
+            pass
         print("Closing the AI client.")
     
 if __name__ == "__main__":

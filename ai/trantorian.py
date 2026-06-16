@@ -40,7 +40,7 @@ class Trantorian:
         """Reset gathering state after an incantation or abandoned gathering."""
 
         self.state = EXPLORE
-        self.is_anchor = True
+        self.is_anchor = False
         self.anchor_token = None
         self.gather_silence = 0
         self.anchor_confirmations = 0

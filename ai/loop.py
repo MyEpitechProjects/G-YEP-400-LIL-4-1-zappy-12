@@ -12,13 +12,31 @@ from ai.fork import spawn_child
 from ai.constants import PIPELINE_CAP, CONNECT_NBR_PERIOD
 
 def send_command(socket_file, command):
-    socket_file.write(command + "\n")
-    socket_file.flush()
+    """Send a command and detect a closed server connection."""
+
+    try:
+        socket_file.write(command + "\n")
+        socket_file.flush()
+    except (BrokenPipeError, ConnectionResetError, OSError) as error:
+        print(f"Connection lost while sending '{command}': {error}")
+        return False
+    return True
 
 def read_response(socket_file, trantorian, expecting_incantation):
-    """Read the next meaningful response, skipping unsolicited async lines."""
+    """Read a meaningful response and detect a closed connection."""
+
     while True:
-        line = socket_file.readline().strip()
+        try:
+            raw_line = socket_file.readline()
+        except (ConnectionResetError, OSError) as error:
+            print(f"Connection lost while reading: {error}")
+            return None
+        if raw_line == "":
+            print("The server closed the connection.")
+            return None
+        line = raw_line.strip()
+        if line == "":
+            continue
         if is_async_message(line):
             if line.startswith("message "):
                 broadcast = parse_broadcast(line)
@@ -52,30 +70,36 @@ def handle_response(trantorian, verb, object_name, response):
     return True
 
 def execute_plan(socket_file, trantorian, plan):
-    """Send the whole plan keeping the server buffer filled, read replies in order.
-    Returns (alive, executed_count)."""
+    """Execute a plan and stop cleanly if the connection is lost."""
+
     sent = []
-    i = 0
-    n = len(plan)
+    plan_index = 0
     executed = 0
-    while i < n or sent:
-        while i < n and len(sent) < PIPELINE_CAP:
-            command = plan[i]
-            i += 1
+    while plan_index < len(plan) or sent:
+        while (plan_index < len(plan) and len(sent) < PIPELINE_CAP):
+            command = plan[plan_index]
+            plan_index += 1
             parts = command.split()
             verb = parts[0]
             object_name = parts[1] if len(parts) > 1 else None
-            send_command(socket_file, command)
+            if not send_command(socket_file, command):
+                return False, executed
             trantorian.pending_commands += 1
             sent.append((verb, object_name))
         verb, object_name = sent.pop(0)
         response = read_response(socket_file, trantorian, verb == "Incantation")
+        if response is None:
+            trantorian.pending_commands = max(0, trantorian.pending_commands - 1)
+            return False, executed
         if verb == "Incantation" and response == "Elevation underway":
-            second = read_response(socket_file, trantorian, True)
-            response = f"{response} / {second}"
+            second_response = read_response(socket_file, trantorian, True)
+            if second_response is None:
+                trantorian.pending_commands = max(0, trantorian.pending_commands - 1)
+                return False, executed
+            response = (f"{response} / {second_response}")
         trantorian.pending_commands -= 1
         executed += 1
-        if not handle_response(trantorian, verb, object_name, response):
+        if not handle_response(trantorian, verb, object_name,response):
             return False, executed
     return True, executed
 
