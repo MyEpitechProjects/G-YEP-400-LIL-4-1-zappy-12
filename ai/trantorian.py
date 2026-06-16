@@ -46,6 +46,22 @@ class Trantorian:
         self.anchor_confirmations = 0
         self.heard_calls = []
 
+    def reset_election(self):
+        """Start a fresh anchor election for the current level."""
+
+        self.reset_gather_state()
+        self.gather_token = random.randint(0, 999999)
+        self.last_incant_failed = False
+
+    def update_level(self, new_level):
+        """Update the level and restart anchor election after elevation."""
+
+        if new_level == self.level:
+            return
+        self.level = new_level
+        self.reset_election()
+        self.vision = []
+
     def update_from_response(self, action, response, object_name=None):
         """Integrate the last server response into the agent's own state."""
 
@@ -66,8 +82,7 @@ class Trantorian:
             if "Current level:" in response:
                 level = response.split("Current level:")[-1].strip()
                 if level.isdigit():
-                    self.level = int(level)
-                    self.reset_gather_state()
+                    self.update_level(int(level))
                 self.last_incant_failed = False
             else:
                 self.last_incant_failed = True

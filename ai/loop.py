@@ -48,8 +48,7 @@ def read_response(socket_file, trantorian, expecting_incantation):
             if line.startswith("Current level:"):
                 level = line.split("Current level:")[-1].strip()
                 if level.isdigit():
-                    trantorian.level = int(level)
-                    trantorian.reset_gather_state()
+                    trantorian.update_level(int(level))
                 trantorian.vision = []
             print(f"[async] {line}")
             continue
