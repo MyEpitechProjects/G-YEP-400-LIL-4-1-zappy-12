@@ -31,6 +31,13 @@ static void parse_team_names(arguments_t *args, int argc, char **argv)
     }
 }
 
+static void dummy_parse_team_names(int argc, char **argv)
+{
+    while (optind < argc && argv[optind][0] != '-') {
+        optind++;
+    }
+}
+
 static void opt_switch(arguments_t *args, int opt, int argc, char **argv)
 {
     switch (opt) {
@@ -73,6 +80,8 @@ static bool default_freq(int argc, char **argv)
         opt = getopt(argc, argv, "p:x:y:n:c:f:");
         if (opt == -1)
             break;
+        if (opt == 'n')
+            dummy_parse_team_names(argc, argv);
         if (opt == '?' || opt == 'f')
             return false;
     }

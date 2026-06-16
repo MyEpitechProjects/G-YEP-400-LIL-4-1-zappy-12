@@ -70,7 +70,6 @@ typedef struct zappy_t {
     uint64_t nb_incantation;
     incantation_t *incantation;
     myclock_t foodClock;
-    char *win_team;
 } zappy_t;
 
 static const unit_t unit_values[] = {
@@ -179,6 +178,8 @@ bool intern_protocol_killed_egg(connection_t *_server, uint32_t i,
     egg_t *egg);
 bool intern_protocol_ejected(connection_t *_server, uint32_t i,
     player_t *player);
+bool intern_protocol_game_end(connection_t *_server, uint32_t i,
+    const char *team);
 
 
 
@@ -248,6 +249,8 @@ bool trigger_graphic_killed_eggs(connection_t *_server,
     egg_t *egg);
 bool trigger_graphic_ejected(connection_t *_server,
     player_t *player);
+bool trigger_graphic_game_end(connection_t *_server,
+    const char *team);
 
 bool protocol_ko(connection_t *_server, uint32_t i, char **command);
 bool protocol_ok(connection_t *_server, uint32_t i, char **command);

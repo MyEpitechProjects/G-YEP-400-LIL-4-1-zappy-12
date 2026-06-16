@@ -49,13 +49,32 @@ bool check_incantation(connection_t *_server, const incantation_type_t *target,
         check_incantation_items(&tile->inventory, &target->inv));
 }
 
-static bool check_end(zappy_t *zappy)
+static uint64_t get_level8_palyers_by_team(connection_t *_server,
+    const char *team)
 {
-    for (uint64_t i = 0; i < zappy->nb_players; i++){
-        if (zappy->players[i].incanting || zappy->players->dead)
+    uint64_t count = 0;
+
+    for (uint64_t i = 0; i < _server->zappy.nb_players; i++){
+        if (_server->zappy.players[i].dead ||
+            _server->zappy.players[i].incanting ||
+            strcmp(_server->zappy.players[i].team, team) != 0 ||
+            _server->zappy.players[i].level < WIN_LEVEL)
             continue;
-        if (zappy->players[i].level >= WIN_LEVEL){
-            zappy->win_team = zappy->players[i].team;
+        count++;
+    }
+    return count;
+}
+
+static bool check_end(connection_t *_server)
+{
+    uint64_t count = 0;
+
+    for (uint64_t i = 0; i < _server->arguments->team_number; i++){
+        count = get_level8_palyers_by_team(_server,
+            _server->arguments->teams_names[i]);
+        if (count >= WIN_LEVEL){
+            trigger_graphic_game_end(_server,
+                _server->arguments->teams_names[i]);
             return true;
         }
     }
@@ -100,5 +119,5 @@ bool check_incantation_finish(connection_t *_server, zappy_t *zappy)
         }
         zappy->incantation[i].active = false;
     }
-    return check_end(zappy);
+    return check_end(_server);
 }

@@ -77,6 +77,8 @@ static bool execute_client(connection_t *_server, uint32_t *i, bool ret)
         if (!player || !player->incanting)
             execute_buffer(_server, i, ret);
     }
+    if (end)
+        return false;
     return ret;
 }
 

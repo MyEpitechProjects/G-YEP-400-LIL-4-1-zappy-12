@@ -26,12 +26,13 @@ static bool kill_eggs(connection_t *_server, pos_t *pos)
 }
 
 static bool eject_players(connection_t *_server, pos_t *pos,
-    orientation_t orientation)
+    orientation_t orientation, uint64_t me)
 {
     bool ret = false;
 
     for (uint64_t i = 0; i < _server->zappy.nb_players; i++){
-        if (_server->zappy.players[i].dead ||
+        if (_server->zappy.players[i].index == me ||
+            _server->zappy.players[i].dead ||
             _server->zappy.players[i].pos.x != pos->x ||
             _server->zappy.players[i].pos.y != pos->y)
             continue;
@@ -48,7 +49,8 @@ bool protocol_ia_eject(connection_t *_server, uint32_t i,
     player_t *player = get_player_by_id(_server, _server->_fdsm[i].id);
     tile_t *tile = &_server->zappy.tiles[tile_pos_to_index(_server,
             player->pos.x, player->pos.y)];
-    bool ejectedPlayer = eject_players(_server, &tile->pos, player->o);
+    bool ejectedPlayer = eject_players(_server, &tile->pos, player->o,
+        player->index);
     bool killedEggs = kill_eggs(_server, &tile->pos);
 
     if (!ejectedPlayer && !killedEggs)

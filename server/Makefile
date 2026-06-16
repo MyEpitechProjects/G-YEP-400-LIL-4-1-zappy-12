@@ -39,6 +39,7 @@ SRC =	src/server_push.c								\
 		src/commands/trigger/gui_start_incantation.c	\
 		src/commands/trigger/ia_start_incantation.c		\
 		src/commands/trigger/ia_end_incantation.c		\
+		src/commands/trigger/gui_game_end.c				\
 		src/commands/trigger/gui_end_incantation.c		\
 		src/commands/gui/protocol_collect.c				\
 		src/commands/gui/protocol_drop.c				\
@@ -55,6 +56,7 @@ SRC =	src/server_push.c								\
 		src/commands/gui/protocol_player_level.c		\
 		src/commands/gui/protocol_ejected.c				\
 		src/commands/gui/protocol_killed_egg.c			\
+		src/commands/gui/protocol_game_end.c			\
 		src/commands/gui/protocol_player_inventory.c	\
 		src/commands/gui/protocol_incantation.c			\
 		src/commands/gui/protocol_egg.c					\
