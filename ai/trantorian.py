@@ -35,9 +35,13 @@ class Trantorian:
         self.anchor_token = None
         self.gather_silence = 0
         self.anchor_confirmations = 0
+        self.ready_calls = []
+        self.ready_players = {}
+        self.ready_repeat_counter = 0
+        self.coordination_tick = 0
 
     def reset_gather_state(self):
-        """Reset gathering state after an incantation or abandoned gathering."""
+        """Reset gathering and ritual coordination state."""
 
         self.state = EXPLORE
         self.is_anchor = False
@@ -45,6 +49,10 @@ class Trantorian:
         self.gather_silence = 0
         self.anchor_confirmations = 0
         self.heard_calls = []
+        self.ready_calls = []
+        self.ready_players = {}
+        self.ready_repeat_counter = 0
+        self.coordination_tick = 0
 
     def reset_election(self):
         """Start a fresh anchor election for the current level."""

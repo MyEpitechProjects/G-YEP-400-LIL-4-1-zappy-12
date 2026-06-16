@@ -68,10 +68,36 @@ def parse_look(response):
         list_tiles.append(tile)
     return list_tiles
 
+def build_gather_message(team_name, level, anchor_token):
+    """Build a typed gathering broadcast message."""
+
+    return f"GATHER:{team_name}:{level}:{anchor_token}"
+
+def build_ready_message(team_name, level,anchor_token, player_token):
+    """Build a typed ready broadcast message."""
+
+    return f"READY:{team_name}:{level}:"f"{anchor_token}:{player_token}"
+
 def parse_gather_call(text):
-    """'team:level:token' -> (team, level, token) or None."""
+    """Parse a GATHER coordination message."""
 
     parts = text.split(":")
-    if len(parts) != 3 or not parts[1].isdigit() or not parts[2].isdigit():
+    if len(parts) != 4:
         return None
-    return parts[0], int(parts[1]), int(parts[2])
+    if parts[0] != "GATHER":
+        return None
+    if not parts[2].isdigit() or not parts[3].isdigit():
+        return None
+    return parts[1], int(parts[2]), int(parts[3])
+
+def parse_ready_call(text):
+    """Parse a READY coordination message."""
+
+    parts = text.split(":")
+    if len(parts) != 5:
+        return None
+    if parts[0] != "READY":
+        return None
+    if not parts[2].isdigit() or not parts[3].isdigit() or not parts[4].isdigit():
+        return None
+    return  parts[1], int(parts[2]), int(parts[3]), int(parts[4])

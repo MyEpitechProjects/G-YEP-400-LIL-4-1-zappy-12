@@ -6,7 +6,7 @@
 ##
 
 from ai.trantorian import Trantorian
-from ai.protocol import is_async_message, is_incantation_event, parse_broadcast
+from ai.protocol import is_async_message, is_incantation_event, parse_broadcast, parse_gather_call, parse_ready_call
 from ai.strategy import build_plan
 from ai.fork import spawn_child
 from ai.constants import PIPELINE_CAP, CONNECT_NBR_PERIOD
@@ -41,7 +41,11 @@ def read_response(socket_file, trantorian, expecting_incantation):
             if line.startswith("message "):
                 broadcast = parse_broadcast(line)
                 if broadcast is not None:
-                    trantorian.heard_calls = (trantorian.heard_calls + [broadcast])[-20:]
+                    direction, text = broadcast
+                    if parse_gather_call(text) is not None:
+                        trantorian.heard_calls = (trantorian.heard_calls + [(direction, text)])[-20:]
+                    elif parse_ready_call(text) is not None:
+                        trantorian.ready_calls = (trantorian.ready_calls + [(direction, text)])[-50:]
             print(f"[async] {line}")
             continue
         if not expecting_incantation and is_incantation_event(line):

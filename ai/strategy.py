@@ -5,10 +5,9 @@
 ## Decision making: state machine, tile scoring and plan construction
 ##
 
-from ai.constants import FOOD_LOW_LIMIT, SURVIVE, INCANT, PREPARE_RITUAL, COLLECT_STONE, EXPLORE, GATHER, FOLLOW_GATHER, WAIT_RITUAL, GATHER_TIMEOUT, REQUIREMENTS, STONES, HIGH_FOOD_PRIORITY, NORMAL_FOOD_PRIORITY, STONE_PRIORITY, DISTANCE_PENALTY, CURRENT_TILE_BONUS, ANCHOR_CONFIRMATION_ROUNDS
+from ai.constants import FOOD_LOW_LIMIT, SURVIVE, INCANT, PREPARE_RITUAL, COLLECT_STONE, EXPLORE, GATHER, FOLLOW_GATHER, WAIT_RITUAL, GATHER_TIMEOUT, REQUIREMENTS, STONES, HIGH_FOOD_PRIORITY, NORMAL_FOOD_PRIORITY, STONE_PRIORITY, DISTANCE_PENALTY, CURRENT_TILE_BONUS, ANCHOR_CONFIRMATION_ROUNDS, READY_REPEAT_PERIOD, READY_TIMEOUT
 from ai.rules import has_required_stones_in_inventory, missing_stone_visible, enough_players_present, can_start_incantation
-from ai.navigation import distance_from_tile_index, build_move_plan, moves_toward_sound
-from ai.protocol import parse_gather_call
+from ai.protocol import parse_gather_call, parse_ready_call, build_gather_message, build_ready_message
 from ai.fork import should_reproduce
 from ai.navigation import distance_from_tile_index, build_move_plan, moves_toward_sound, step_forward, turns_to_face
 
@@ -59,13 +58,6 @@ def choose_state(inventory, vision, level):
         return COLLECT_STONE
     return EXPLORE
 
-def build_wait_ritual_plan(current_tile):
-    """Wait for the ritual without taking stones from the current tile."""
-
-    if current_tile.get("food", 0) > 0:
-        return ["Take food"]
-    return ["Look"]
-
 def build_take_plan(tile, inventory, level):
     """Build a plan to take useful resources from the current tile."""
 
@@ -113,6 +105,18 @@ def build_prepare_ritual_plan(level, inventory, current_tile):
     plan.append("Look")
     return plan
 
+def build_gather_command(trantorian):
+    """Build the anchor gathering broadcast command."""
+
+    message = build_gather_message(trantorian.team_name, trantorian.level, trantorian.gather_token)
+    return "Broadcast " + message
+
+def build_ready_command(trantorian):
+    """Build a READY command targeted at the selected anchor."""
+
+    message = build_ready_message(trantorian.team_name, trantorian.level, trantorian.anchor_token, trantorian.gather_token)
+    return "Broadcast " + message
+
 def select_anchor_for_follower(trantorian):
     """Return direction and token of the best valid gathering anchor."""
 
@@ -158,35 +162,100 @@ def select_best_anchor(trantorian):
     return best_anchor
 
 def owns_anchor_role(trantorian):
-    """Check whether this agent owns the elected anchor token"""
-    
+    """Check whether this agent owns the elected anchor token."""
+
     return trantorian.is_anchor and trantorian.anchor_token == trantorian.gather_token
 
+def update_ready_players(trantorian):
+    """Register valid READY heartbeats received by the elected anchor."""
+
+    if not owns_anchor_role(trantorian):
+        trantorian.ready_calls = []
+        trantorian.ready_players = {}
+        return
+    for direction, text in trantorian.ready_calls:
+        parsed = parse_ready_call(text)
+        if parsed is None:
+            continue
+        team, level, anchor_token, player_token = parsed
+        if direction != 0:
+            continue
+        if team != trantorian.team_name:
+            continue
+        if level != trantorian.level:
+            continue
+        if anchor_token != trantorian.gather_token:
+            continue
+        if player_token == trantorian.gather_token:
+            continue
+        trantorian.ready_players[player_token] = trantorian.coordination_tick
+    trantorian.ready_calls = []
+    expired_players = []
+    for player_token, last_seen in trantorian.ready_players.items():
+        age = trantorian.coordination_tick - last_seen
+        if age > READY_TIMEOUT:
+            expired_players.append(player_token)
+    for player_token in expired_players:
+        del trantorian.ready_players[player_token]
+
+def has_ready_group(trantorian, current_tile):
+    """Check if enough valid same-level players are on the anchor tile."""
+
+    required_players = REQUIREMENTS.get(trantorian.level + 1, {}).get("players", 0)
+    ready_players = 1 + len(trantorian.ready_players)
+    visible_players = current_tile.get("player", 0)
+    return ready_players >= required_players and visible_players >= required_players
+
+def build_wait_ritual_plan(trantorian, current_tile):
+    """Wait on the anchor tile and regularly send READY heartbeats."""
+
+    plan = []
+    if current_tile.get("food", 0) > 0:
+        plan.append("Take food")
+    if trantorian.anchor_token is None:
+        plan.append("Look")
+        return plan
+    if trantorian.ready_repeat_counter <= 0:
+        plan.append(build_ready_command(trantorian))
+        trantorian.ready_repeat_counter = READY_REPEAT_PERIOD - 1
+    else:
+        trantorian.ready_repeat_counter -= 1
+    plan.append("Look")
+    return plan
+
 def build_follow_gather_plan(trantorian, current_tile):
-    """Follow an anchor or wait without taking ritual stones."""
+    """Follow an anchor and announce readiness on its ritual tile."""
 
     selected_anchor = select_anchor_for_follower(trantorian)
     if selected_anchor is not None:
         direction, token = selected_anchor
+        anchor_changed = trantorian.anchor_token != token
         trantorian.anchor_token = token
         trantorian.is_anchor = False
         trantorian.gather_silence = 0
+        trantorian.ready_players = {}
         if direction == 0:
+            if anchor_changed or trantorian.state != WAIT_RITUAL:
+                trantorian.ready_repeat_counter = 0
             trantorian.state = WAIT_RITUAL
-            return build_wait_ritual_plan(current_tile)
+            return build_wait_ritual_plan(trantorian, current_tile)
         trantorian.state = FOLLOW_GATHER
+        trantorian.ready_repeat_counter = 0
         return moves_toward_sound(direction) + ["Look"]
     if trantorian.state in (FOLLOW_GATHER, WAIT_RITUAL):
-        trantorian.gather_silence += 1
+        if trantorian.state == WAIT_RITUAL and current_tile.get("player", 0) > 1:
+            trantorian.gather_silence = 0
+        else:
+            trantorian.gather_silence += 1
         if trantorian.gather_silence >= GATHER_TIMEOUT:
             trantorian.reset_gather_state()
             return None
         if trantorian.state == WAIT_RITUAL:
-            return build_wait_ritual_plan(current_tile)
+            return build_wait_ritual_plan(trantorian, current_tile)
         return ["Look"]
     return None
 
-def build_gather_plan(trantorian):
+def build_gather_plan(trantorian, current_tile):
     """Elect one anchor and make weaker candidates follow it."""
 
     selected_anchor = select_best_anchor(trantorian)
@@ -195,35 +264,37 @@ def build_gather_plan(trantorian):
         trantorian.is_anchor = False
         trantorian.anchor_token = token
         trantorian.anchor_confirmations = 0
+        trantorian.ready_players = {}
+        trantorian.ready_repeat_counter = 0
         if direction == 0:
             trantorian.state = WAIT_RITUAL
-            return ["Look"]
+            return build_wait_ritual_plan(trantorian, current_tile)
         trantorian.state = FOLLOW_GATHER
         return moves_toward_sound(direction) + ["Look"]
     trantorian.anchor_token = trantorian.gather_token
     trantorian.anchor_confirmations += 1
     trantorian.is_anchor = (trantorian.anchor_confirmations >= ANCHOR_CONFIRMATION_ROUNDS)
     trantorian.state = GATHER
-    call = (f"{trantorian.team_name}:"f"{trantorian.level}:"f"{trantorian.gather_token}")
-    return ["Broadcast " + call, "Look"]
+    return [build_gather_command(trantorian), "Look"]
 
 def explore_plan(trantorian):
     """Frontier exploration: head toward the least-visited neighbouring tile."""
-    x, y, o = trantorian.x, trantorian.y, trantorian.orientation
-    w, h = trantorian.map_width, trantorian.map_height
+
+    x, y, orientation = trantorian.x, trantorian.y, trantorian.orientation
+    width, height = trantorian.map_width, trantorian.map_height
     trantorian.visited[(x, y)] = trantorian.visited.get((x, y), 0) + 1
-    best_orientation = o
+    best_orientation = orientation
     best_score = None
-    for target_o in range(4):
-        nx, ny = step_forward(x, y, target_o, w, h)
-        turn_cost = (target_o - o) % 4
+    for target_orientation in range(4):
+        next_x, next_y = step_forward(x, y, target_orientation, width, height)
+        turn_cost = (target_orientation - orientation) % 4
         if turn_cost == 3:
             turn_cost = 1
-        score = (trantorian.visited.get((nx, ny), 0), turn_cost)
+        score = (trantorian.visited.get((next_x, next_y), 0), turn_cost)
         if best_score is None or score < best_score:
             best_score = score
-            best_orientation = target_o
-    return turns_to_face(o, best_orientation) + ["Forward", "Look"]
+            best_orientation = target_orientation
+    return turns_to_face(orientation, best_orientation) + ["Forward", "Look"]
 
 def build_plan(trantorian):
     """Build the next action plan from the current AI state."""
@@ -236,18 +307,24 @@ def build_plan(trantorian):
     if not vision:
         return ["Look"]
     current_tile = vision[0]
+    trantorian.coordination_tick += 1
+    update_ready_players(trantorian)
     food = inventory.get("food", 0)
     has_all_stones = has_required_stones_in_inventory(level, inventory)
-    if trantorian.state in (FOLLOW_GATHER, WAIT_RITUAL):
-        follow_plan = build_follow_gather_plan(trantorian, current_tile)
-        if follow_plan is not None:
-            return follow_plan
-    if food > FOOD_LOW_LIMIT and not has_all_stones:
-        follow_plan = build_follow_gather_plan(trantorian, current_tile)
-        if follow_plan is not None:
-            return follow_plan
-    if food > FOOD_LOW_LIMIT and has_all_stones and not owns_anchor_role(trantorian):
-        return build_gather_plan(trantorian)
+    if food <= FOOD_LOW_LIMIT:
+        if trantorian.state in (GATHER, FOLLOW_GATHER, WAIT_RITUAL) or trantorian.is_anchor:
+            trantorian.reset_gather_state()
+    else:
+        if trantorian.state in (FOLLOW_GATHER, WAIT_RITUAL):
+            follow_plan = build_follow_gather_plan(trantorian, current_tile)
+            if follow_plan is not None:
+                return follow_plan
+        if not has_all_stones:
+            follow_plan = build_follow_gather_plan(trantorian, current_tile)
+            if follow_plan is not None:
+                return follow_plan
+        if has_all_stones and not owns_anchor_role(trantorian):
+            return build_gather_plan(trantorian, current_tile)
     state = choose_state(inventory, vision, level)
     trantorian.state = state
     if state in (EXPLORE, GATHER) and should_reproduce(trantorian):
@@ -261,18 +338,21 @@ def build_plan(trantorian):
             plan = build_move_plan(best_tile)
             plan.append("Look")
             return plan
-        return explore_plan(trantorian) 
+        return explore_plan(trantorian)
     if state == INCANT:
         if not owns_anchor_role(trantorian):
             return ["Look"]
+        if not has_ready_group(trantorian, current_tile):
+            return [build_gather_command(trantorian), "Look"]
         if trantorian.last_incant_failed:
             trantorian.last_incant_failed = False
-            call = (f"{trantorian.team_name}:"f"{trantorian.level}:"f"{trantorian.gather_token}")
-            return ["Broadcast " + call, "Look"]
+            return [build_gather_command(trantorian), "Look"]
         return ["Incantation"]
     if state == PREPARE_RITUAL:
         if not owns_anchor_role(trantorian):
             return ["Look"]
+        if not has_ready_group(trantorian, current_tile):
+            return [build_gather_command(trantorian), "Look"]
         plan = build_prepare_ritual_plan(level, inventory, current_tile)
         if plan:
             return plan
@@ -290,7 +370,7 @@ def build_plan(trantorian):
     if state == EXPLORE:
         return explore_plan(trantorian)
     if state == GATHER:
-        return build_gather_plan(trantorian)
+        return build_gather_plan(trantorian, current_tile)
     if state == WAIT_RITUAL:
-        return build_wait_ritual_plan(current_tile)
+        return build_wait_ritual_plan(trantorian, current_tile)
     return ["Look"]
