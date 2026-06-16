@@ -68,8 +68,9 @@ static bool default_freq(int argc, char **argv)
 {
     int opt = 0;
 
+    optind = 1;
     while (opt != -1) {
-        opt = getopt(argc, argv, "f:");
+        opt = getopt(argc, argv, "p:x:y:n:c:f:");
         if (opt == -1)
             break;
         if (opt == '?' || opt == 'f')

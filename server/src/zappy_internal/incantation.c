@@ -1,0 +1,104 @@
+/*
+** EPITECH PROJECT, 2026
+** server ftp
+** File description:
+** none
+*/
+
+#include "clock.h"
+#include "myserver.h"
+#include "zappy/zappy_internal.h"
+#include "sys.h"
+
+static bool check_incantation_items(const inventory_t *inv_tile,
+    const inventory_t *target_inv)
+{
+    return (inv_tile->deraumere >= target_inv->deraumere &&
+        inv_tile->linemate >= target_inv->linemate &&
+        inv_tile->mendiane >= target_inv->mendiane &&
+        inv_tile->phiras >= target_inv->phiras &&
+        inv_tile->sibur >= target_inv->sibur &&
+        inv_tile->thystame >= target_inv->thystame);
+}
+
+static bool check_incantation_player(zappy_t *zappy,
+    uint64_t min_player, uint64_t incantationLevel, bool startCheck)
+{
+    uint64_t count = 0;
+
+    for (uint64_t i = 0; i < zappy->nb_players; i++){
+        if (zappy->players[i].dead ||
+            zappy->players[i].level != incantationLevel ||
+            (zappy->players[i].incanting && startCheck))
+            continue;
+        count++;
+    }
+    return count >= min_player;
+}
+
+bool check_incantation(connection_t *_server, const incantation_type_t *target,
+    pos_t *incantationPos, bool startCheck)
+{
+    tile_t *tile = &_server->zappy.tiles[tile_pos_to_index(_server,
+            incantationPos->x, incantationPos->y)];
+
+    if (!target)
+        return false;
+    return (check_incantation_player(&_server->zappy,
+            target->nbPlayer, target->level, startCheck) &&
+        check_incantation_items(&tile->inventory, &target->inv));
+}
+
+static bool check_end(zappy_t *zappy)
+{
+    for (uint64_t i = 0; i < zappy->nb_players; i++){
+        if (zappy->players[i].incanting || zappy->players->dead)
+            continue;
+        if (zappy->players[i].level >= WIN_LEVEL){
+            zappy->win_team = zappy->players[i].team;
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool remove_stones_incantation(connection_t *_server,
+    incantation_t *incantation)
+{
+    pos_t *pos = &incantation->pos;
+    const inventory_t *to_remove = &incantation->type->inv;
+    tile_t *tile = &_server->zappy.tiles[tile_pos_to_index(_server,
+            pos->x, pos->y)];
+
+    tile->inventory.deraumere -= to_remove->deraumere;
+    tile->inventory.linemate -= to_remove->linemate;
+    tile->inventory.mendiane -= to_remove->mendiane;
+    tile->inventory.phiras -= to_remove->phiras;
+    tile->inventory.sibur -= to_remove->sibur;
+    tile->inventory.thystame -= to_remove->thystame;
+    return trigger_graphic_tile_change(_server, tile);
+}
+
+bool check_incantation_finish(connection_t *_server, zappy_t *zappy)
+{
+    uint64_t unit = calculate_time_freq(_server, INCANTATION_UNIT);
+    uint64_t inc_index = 0;
+
+    for (uint64_t i = 0; i < zappy->nb_incantation; i++){
+        if (!zappy->incantation[i].active ||
+            get_elapsed(&zappy->incantation[i].clock) < unit)
+            continue;
+        inc_index = zappy->incantation[i].index;
+        if (check_incantation(_server, zappy->incantation[i].type,
+                &zappy->incantation->pos, false)){
+            trigger_gui_end_incantation(_server, zappy, i, true);
+            trigger_ia_end_incantation_ok(_server, inc_index);
+            remove_stones_incantation(_server, &_server->zappy.incantation[i]);
+        } else {
+            trigger_gui_end_incantation(_server, zappy, i, false);
+            trigger_ia_end_incantation_ko(_server, inc_index);
+        }
+        zappy->incantation[i].active = false;
+    }
+    return check_end(zappy);
+}

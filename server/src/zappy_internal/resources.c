@@ -48,12 +48,15 @@ static void dispatch_resource(connection_t *_server, zappy_t *zappy,
     uint32_t qty, resource_type_t type)
 {
     uint64_t map_size = _server->arguments->width * _server->arguments->height;
+    uint64_t randvalue = 0;
 
     for (uint32_t i = 0; i < qty; i++){
+        randvalue = randint(map_size);
         if (type == 0){
-            zappy->tiles[randint(map_size)].inventory.food++;
+            zappy->tiles[randvalue].inventory.food++;
         } else
-            add_resource_to_tile(&zappy->tiles[randint(map_size)], type);
+            add_resource_to_tile(&zappy->tiles[randvalue], type);
+        trigger_graphic_tile_change(_server, &zappy->tiles[randvalue]);
     }
 }
 

@@ -9,7 +9,7 @@
 #include "myserver.h"
 #include "zappy/zappy_internal.h"
 
-bool trigger_graphic_player_eat(connection_t *_server, player_t *player)
+bool trigger_graphic_player_inv(connection_t *_server, player_t *player)
 {
     for (uint64_t i = 0; i < _server->nfds; i++){
         if (_server->_fdsm[i].client_type != CLIENT_GUI)

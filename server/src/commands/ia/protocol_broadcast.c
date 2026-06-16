@@ -101,10 +101,8 @@ bool intern_protocol_ia_broadcast(connection_t *_server, uint32_t i,
 bool protocol_ia_broadcast(connection_t *_server, uint32_t i,
     char **command)
 {
-    char *string = string_create("ok");
     player_t *me = get_player_by_id(_server, _server->_fdsm[i].id);
 
     trigger_broadcast(_server, i, me, command[1]);
-    string = send_string(_server->_fds[i].fd, string);
-    return true;
+    return protocol_ok(_server, i, command);
 }

@@ -32,6 +32,28 @@ static int64_t get_eat_timedout(connection_t *_server)
     return time;
 }
 
+static int64_t get_incantation_timedout(connection_t *_server)
+{
+    uint64_t unit = 0;
+    uint64_t calculated_time = 0;
+    int64_t time = -1;
+    bool first = true;
+
+    for (uint32_t i = 0; i < _server->zappy.nb_incantation; i++){
+        if (!_server->zappy.incantation[i].active)
+            continue;
+        unit = calculate_time_freq(_server, INCANTATION_UNIT);
+        calculated_time = (unit -
+            get_elapsed(&_server->zappy.incantation[i].clock));
+        if (first)
+            time = calculated_time;
+        else
+            time = min(time, calculated_time);
+        first = false;
+    }
+    return time;
+}
+
 static uint64_t get_command_timedout(connection_t *_server)
 {
     uint64_t buffer_size = 0;
@@ -86,6 +108,7 @@ int64_t get_timedout(connection_t *_server)
 
     time = compare_timedout(get_eat_timedout(_server), time);
     time = compare_timedout(get_command_timedout(_server), time);
+    time = compare_timedout(get_incantation_timedout(_server), time);
     if (time == -1)
         return -1;
     return max(0, (uint64_t)time) * 1000;

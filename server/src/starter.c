@@ -53,22 +53,29 @@ static bool check_eat(connection_t *_server, uint32_t *i)
         me->dead = true;
         protocol_ia_death(_server, *i, NULL);
         trigger_graphic_player_death(_server, me);
-        return pop_poller(_server, i);
+        return client_disconnect(_server, i);
     }
     me->inventory.food--;
-    trigger_graphic_player_eat(_server, me);
+    trigger_graphic_player_inv(_server, me);
     return false;
 }
 
 static bool execute_client(connection_t *_server, uint32_t *i, bool ret)
 {
     bool down = false;
+    bool end = false;
+    player_t *player = NULL;
 
-    if (_server->_fdsm[*i].client_type == CLIENT_IA)
+    if (_server->_fdsm[*i].client_type == CLIENT_IA){
+        player = get_player_by_id(_server, _server->_fdsm[*i].id);
         down = check_eat(_server, i);
-    if (!down){
+        if (!down)
+            end = check_incantation_finish(_server, &_server->zappy);
+    }
+    if (!down && !end){
         ret = requese_handler(_server, i, ret);
-        execute_buffer(_server, i, ret);
+        if (!player || !player->incanting)
+            execute_buffer(_server, i, ret);
     }
     return ret;
 }
@@ -112,7 +119,7 @@ bool start_server(arguments_t *arguments, int sdf)
     memset(&_server, 0, sizeof(connection_t));
     _server.arguments = arguments;
     if (!push_socket(&_server, arguments->port, SOMAXCONN, FD_SERVER) ||
-        !zappy(&_server, &_server.zappy)) {
+        !init_zappy(&_server, &_server.zappy)) {
         return free_server(&_server, false);
     }
     push_poller(&_server, sdf, NULL, FD_QUIT);

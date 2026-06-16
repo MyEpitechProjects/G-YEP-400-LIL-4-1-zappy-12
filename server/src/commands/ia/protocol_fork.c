@@ -53,12 +53,10 @@ static bool push_egg(connection_t *_server,
 bool protocol_ia_fork(connection_t *_server, uint32_t i,
     char **command)
 {
-    char *string = string_create("ok");
     player_t *me = get_player_by_id(_server, _server->_fdsm[i].id);
 
     (void)command;
     trigger_graphic_egg_laying(_server, me);
     push_egg(_server, me);
-    string = send_string(_server->_fds[i].fd, string);
-    return true;
+    return protocol_ok(_server, i, command);
 }

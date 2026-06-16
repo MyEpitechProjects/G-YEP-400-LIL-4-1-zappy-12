@@ -22,6 +22,8 @@ typedef struct player_t {
     char *team;
     bool dead;
     myclock_t eatClock;
+    bool incanting;
+    uint64_t incantationIndex;
 } player_t;
 
 #endif

@@ -23,19 +23,16 @@ uint64_t **set_resources_array(uint64_t **src, inventory_t *inv)
     return src;
 }
 
-static bool set_item(connection_t *_server, uint32_t i, uint64_t *me_inv,
-    uint64_t *tile_inv)
+bool switch_item(connection_t *_server, uint32_t i, uint64_t *inv1,
+    uint64_t *inv2)
 {
-    char *string = string_create("ok");
-
-    if (*me_inv == 0){
-        protocol_ia_bad_param(_server, i, string);
+    if (*inv1 == 0){
+        protocol_ia_bad_param(_server, i, NULL);
         return false;
     }
-    *(me_inv) = (*me_inv - 1);
-    *(tile_inv) = (*tile_inv + 1);
-    string = send_string(_server->_fds[i].fd, string);
-    return true;
+    *(inv1) = (*inv1 - 1);
+    *(inv2) = (*inv2 + 1);
+    return protocol_ok(_server, i, NULL);
 }
 
 bool protocol_ia_set(connection_t *_server, uint32_t i,
@@ -52,10 +49,10 @@ bool protocol_ia_set(connection_t *_server, uint32_t i,
     for (uint64_t x = 0; food_names[x] != NULL; x++){
         if (strcmp(food_names[x], command[1]) != 0)
             continue;
-        if (!set_item(_server, i, inv_me[x], inv_tile[x]))
+        if (!switch_item(_server, i, inv_me[x], inv_tile[x]))
             return true;
         trigger_graphic_drop(_server, me, x);
-        trigger_graphic_player_eat(_server, me);
+        trigger_graphic_player_inv(_server, me);
         return trigger_graphic_tile_change(_server, tile);
     }
     return protocol_ia_bad_param(_server, i, NULL);

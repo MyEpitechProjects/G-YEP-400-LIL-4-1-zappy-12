@@ -130,6 +130,9 @@ static const cmd_t ia_commands[] = {
     {"Fork", SERVER_IA_FORK, protocol_ia_fork, UNIT_FORK},
     {"Set", SERVER_IA_SET, protocol_ia_set, UNIT_SET},
     {"Take", SERVER_IA_TAKE, protocol_ia_take, UNIT_TAKE},
+    {"Incantation", SERVER_IA_INCANTATION,
+        protocol_ia_incantation, UNIT_NONE},
+    {"Eject", SERVER_IA_EJECT, protocol_ia_eject, UNIT_EJECT},
     {NULL, UNK_INVOCATION, protocol_ko, UNIT_NONE},
 };
 

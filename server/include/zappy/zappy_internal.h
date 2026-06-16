@@ -14,10 +14,12 @@
     #include "player.h"
     #include "egg.h"
     #include "clock.h"
+    #include "incantation.h"
     #define BASE_FOOD 10
-
+    #define WIN_LEVEL 8
     #define FOOD_SPAWN_UNIT 20
     #define EAT_UNIT 126
+    #define INCANTATION_UNIT 300
     #define DENSITY_FOOD 50
     #define DENSITY_LINEMATE 30
     #define DENSITY_DERAUMERE 15
@@ -65,7 +67,10 @@ typedef struct zappy_t {
     player_t *players;
     uint64_t nb_eggs;
     egg_t *eggs;
+    uint64_t nb_incantation;
+    incantation_t *incantation;
     myclock_t foodClock;
+    char *win_team;
 } zappy_t;
 
 static const unit_t unit_values[] = {
@@ -78,7 +83,6 @@ static const unit_t unit_values[] = {
     {UNIT_SET, 7},
     {UNIT_INVENTORY, 1},
     {UNIT_FORK, 42},
-    {UNIT_INCANTATION, 300},
     {UNIT_SURVIE, 126},
     {UNIT_RESPAWN_RESOURCES, 20},
     {UNIT_NONE, 0},
@@ -103,7 +107,7 @@ char *string_append_int(char *string, const int64_t value, bool spaced);
 char *string_append_uint(char *string, const uint64_t value, bool spaced);
 char *string_end(char *string);
 
-bool zappy(connection_t *_server, zappy_t *zappy);
+bool init_zappy(connection_t *_server, zappy_t *zappy);
 bool need_food_respawn(connection_t *_server, zappy_t *zappy);
 pos_t *set_pos_xy(pos_t *pos, uint64_t x, uint64_t y);
 uint64_t tile_pos_to_index(connection_t *_server, uint64_t x, uint64_t y);
@@ -111,6 +115,7 @@ egg_t *get_egg_by_team(connection_t *_server, char *team);
 player_t *get_player_by_id(connection_t *_server, uint64_t id);
 player_t *get_last_player(connection_t *_server);
 egg_t *get_last_egg(connection_t *_server);
+incantation_t *get_last_incantation(connection_t *_server);
 uint64_t get_available_eggs(connection_t *_server, char *team);
 uint64_t **set_resources_array(uint64_t **src, inventory_t *inv);
 
@@ -118,6 +123,13 @@ uint64_t **set_resources_array(uint64_t **src, inventory_t *inv);
 uint64_t extract_num(char *ptr, char **endptr, int base, bool ok);
 void *list_push(void *original, uint64_t *size, uint64_t itemSize,
     bool *status);
+bool switch_item(connection_t *_server, uint32_t i, uint64_t *inv1,
+    uint64_t *inv2);
+bool check_incantation(connection_t *_server, const incantation_type_t *target,
+    pos_t *incantationPos, bool startCheck);
+bool check_incantation_finish(connection_t *_server, zappy_t *zappy);
+bool player_move(connection_t *_server, player_t *player,
+    orientation_t orientation);
 
 bool protocol_map_size(connection_t *_server, uint32_t i, char **command);
 bool protocol_graphic_start(connection_t *_server, uint32_t i, char **command);
@@ -159,6 +171,14 @@ bool intern_protocol_graphic_drop(connection_t *_server, uint32_t i,
 bool intern_protocol_graphic_collect(connection_t *_server, uint32_t i,
     player_t *player, uint8_t resource_index);
 bool intern_protocol_map_tile(connection_t *_server, uint32_t i, tile_t *tile);
+bool intern_protocol_graphic_start_incantation(connection_t *_server,
+    uint64_t i, uint64_t level, pos_t *pos);
+bool intern_protocol_graphic_end_incantation(connection_t *_server,
+    uint64_t i, bool status, incantation_t *inc);
+bool intern_protocol_killed_egg(connection_t *_server, uint32_t i,
+    egg_t *egg);
+bool intern_protocol_ejected(connection_t *_server, uint32_t i,
+    player_t *player);
 
 
 
@@ -190,10 +210,18 @@ bool protocol_ia_take(connection_t *_server, uint32_t i,
     char **command);
 bool protocol_ia_set(connection_t *_server, uint32_t i,
     char **command);
+bool protocol_ia_incantation_start(connection_t *_server,
+    uint32_t i);
+bool protocol_ia_incantation(connection_t *_server, uint32_t i,
+    char **command);
+bool protocol_ia_incantation_end(connection_t *_server,
+    uint32_t i, player_t *me);
+bool protocol_ia_eject(connection_t *_server, uint32_t i,
+    char **command);
 
 bool trigger_graphic_player_login(connection_t *_server, player_t *player,
     egg_t *egg);
-bool trigger_graphic_player_eat(connection_t *_server, player_t *player);
+bool trigger_graphic_player_inv(connection_t *_server, player_t *player);
 bool trigger_graphic_player_death(connection_t *_server, player_t *player);
 bool trigger_broadcast(connection_t *_server, uint64_t me,
     player_t *sender, char *msg);
@@ -206,6 +234,20 @@ bool trigger_graphic_collect(connection_t *_server, player_t *player,
     uint8_t resources_index);
 bool trigger_graphic_tile_change(connection_t *_server,
     tile_t *tile);
+bool trigger_graphic_start_incantation(connection_t *_server,
+    uint64_t level, pos_t *pos);
+bool trigger_ia_start_incantation(connection_t *_server,
+    uint64_t level, pos_t *pos, uint64_t inc_index);
+bool trigger_ia_end_incantation_ko(connection_t *_server,
+    uint64_t inc_index);
+bool trigger_ia_end_incantation_ok(connection_t *_server,
+    uint64_t inc_index);
+bool trigger_gui_end_incantation(connection_t *_server,
+    zappy_t *zappy, uint64_t incidx, bool status);
+bool trigger_graphic_killed_eggs(connection_t *_server,
+    egg_t *egg);
+bool trigger_graphic_ejected(connection_t *_server,
+    player_t *player);
 
 bool protocol_ko(connection_t *_server, uint32_t i, char **command);
 bool protocol_ok(connection_t *_server, uint32_t i, char **command);
