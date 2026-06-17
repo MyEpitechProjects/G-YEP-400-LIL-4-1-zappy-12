@@ -9,7 +9,7 @@ from ai.trantorian import Trantorian
 from ai.protocol import is_async_message, is_incantation_event, parse_broadcast, parse_gather_call, parse_ready_call
 from ai.strategy import build_plan
 from ai.fork import spawn_child
-from ai.constants import PIPELINE_CAP, CONNECT_NBR_PERIOD
+from ai.constants import PIPELINE_CAP, CONNECT_NBR_PERIOD, INVENTORY_REFRESH_PERIOD
 
 def send_command(socket_file, command):
     """Send a command and detect a closed server connection."""
@@ -111,7 +111,7 @@ def run_ai(trantorian: Trantorian, socket_file):
     since_inventory = 0
     since_connect = 0
     while True:
-        if since_inventory >= 20:
+        if since_inventory >= INVENTORY_REFRESH_PERIOD:
             plan = ["Inventory"]
             since_inventory = 0
         elif since_connect >= CONNECT_NBR_PERIOD:

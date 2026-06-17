@@ -42,11 +42,29 @@ def find_best_tile(vision, inventory, level):
             best_tile_index = tile_index
     return best_tile_index
 
-def choose_state(inventory, vision, level):
+def find_best_food_tile(vision):
+    """Find the best visible tile containing food."""
+
+    best_tile_index = None
+    best_score = None
+    for tile_index, tile in enumerate(vision):
+        food_amount = tile.get("food", 0)
+        if food_amount <= 0:
+            continue
+        distance = distance_from_tile_index(tile_index)
+        score = food_amount * HIGH_FOOD_PRIORITY
+        score -= distance * DISTANCE_PENALTY
+        if tile_index == 0:
+            score += CURRENT_TILE_BONUS
+        if best_score is None or score > best_score:
+            best_score = score
+            best_tile_index = tile_index
+    return best_tile_index
+
+def choose_state(inventory, vision, level, food_emergency):
     """Choose the current AI state from inventory, vision and level."""
 
-    food = inventory.get("food", 0)
-    if food <= FOOD_LOW_LIMIT:
+    if food_emergency:
         return SURVIVE
     if can_start_incantation(level, inventory, vision):
         return INCANT
@@ -82,6 +100,18 @@ def build_take_plan(tile, inventory, level):
             available_amount -= 1
             missing_amount -= 1
     return plan
+
+def build_survival_plan(trantorian, current_tile):
+    """Collect food until the safe food threshold is reached."""
+
+    if current_tile.get("food", 0) > 0:
+        return ["Take food"]
+    best_tile = find_best_food_tile(trantorian.vision)
+    if best_tile is not None and best_tile != 0:
+        plan = build_move_plan(best_tile)
+        plan.append("Look")
+        return plan
+    return explore_plan(trantorian)
 
 def build_prepare_ritual_plan(level, inventory, current_tile):
     """Build a plan to set required stones down before an incantation."""
@@ -307,38 +337,32 @@ def build_plan(trantorian):
     if not vision:
         return ["Look"]
     current_tile = vision[0]
+    was_food_emergency = trantorian.food_emergency
+    food_emergency = trantorian.update_food_emergency()
+    if food_emergency:
+        if not was_food_emergency:
+            trantorian.reset_gather_state()
+        trantorian.state = SURVIVE
+        return build_survival_plan(trantorian, current_tile)
     trantorian.coordination_tick += 1
     update_ready_players(trantorian)
-    food = inventory.get("food", 0)
     has_all_stones = has_required_stones_in_inventory(level, inventory)
-    if food <= FOOD_LOW_LIMIT:
-        if trantorian.state in (GATHER, FOLLOW_GATHER, WAIT_RITUAL) or trantorian.is_anchor:
-            trantorian.reset_gather_state()
-    else:
-        if trantorian.state in (FOLLOW_GATHER, WAIT_RITUAL):
-            follow_plan = build_follow_gather_plan(trantorian, current_tile)
-            if follow_plan is not None:
-                return follow_plan
-        if not has_all_stones:
-            follow_plan = build_follow_gather_plan(trantorian, current_tile)
-            if follow_plan is not None:
-                return follow_plan
-        if has_all_stones and not owns_anchor_role(trantorian):
-            return build_gather_plan(trantorian, current_tile)
-    state = choose_state(inventory, vision, level)
+    if trantorian.state in (FOLLOW_GATHER, WAIT_RITUAL):
+        follow_plan = build_follow_gather_plan(trantorian, current_tile)
+        if follow_plan is not None:
+            return follow_plan
+    if not has_all_stones:
+        follow_plan = build_follow_gather_plan(trantorian, current_tile)
+        if follow_plan is not None:
+            return follow_plan
+    if has_all_stones and not owns_anchor_role(trantorian):
+        return build_gather_plan(trantorian, current_tile)
+    state = choose_state(inventory, vision, level, food_emergency)
     trantorian.state = state
     if state in (EXPLORE, GATHER) and should_reproduce(trantorian):
         return ["Fork"]
     if state == SURVIVE:
-        take_plan = build_take_plan(current_tile, inventory, level)
-        if take_plan:
-            return take_plan
-        best_tile = find_best_tile(vision, inventory, level)
-        if best_tile != 0:
-            plan = build_move_plan(best_tile)
-            plan.append("Look")
-            return plan
-        return explore_plan(trantorian)
+        return build_survival_plan(trantorian, current_tile)
     if state == INCANT:
         if not owns_anchor_role(trantorian):
             return ["Look"]

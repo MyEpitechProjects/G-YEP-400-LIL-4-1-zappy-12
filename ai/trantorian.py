@@ -9,7 +9,7 @@ import random
 
 from ai.protocol import parse_inventory, parse_look
 from ai.navigation import step_forward, turn_right, turn_left
-from ai.constants import EXPLORE
+from ai.constants import EXPLORE, FOOD_LOW_LIMIT, FOOD_SAFE_LIMIT
 
 class Trantorian:
 
@@ -39,6 +39,19 @@ class Trantorian:
         self.ready_players = {}
         self.ready_repeat_counter = 0
         self.coordination_tick = 0
+        self.food_emergency = False
+
+
+    def update_food_emergency(self):
+        """Update food emergency mode using hysteresis thresholds."""
+
+        food = self.inventory.get("food", 0)
+        if self.food_emergency:
+            if food >= FOOD_SAFE_LIMIT:
+                self.food_emergency = False
+        elif food <= FOOD_LOW_LIMIT:
+            self.food_emergency = True
+        return self.food_emergency
 
     def reset_gather_state(self):
         """Reset gathering and ritual coordination state."""
