@@ -62,6 +62,10 @@ bool free_array(void **arr)
 int free_server(connection_t *_server, bool code)
 {
     free_fds(_server);
+    for (uint32_t i = 0; i < _server->nfds; i++){
+        if (_server->_fdsm[i].buffer)
+            _server->_fdsm[i].buffer = myfree(_server->_fdsm[i].buffer);
+    }
     free_fdsm(_server);
     free_socket(_server);
     free_zappy(_server, &_server->zappy);

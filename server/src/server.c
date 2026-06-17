@@ -6,6 +6,7 @@
 */
 
 #include "myserver.h"
+#include "sys.h"
 
 bool recieve_request(connection_t *_server)
 {
@@ -39,7 +40,7 @@ bool accept_data(connection_t *_server, uint32_t i)
 static bool check_commands_time(connection_t *_server, uint32_t i,
     unit_type_t type)
 {
-    uint64_t target_time = get_command_time(_server, type);
+    uint64_t target_time = max(0, get_command_time(_server, type));
 
     if (type == UNIT_NONE)
         return true;
@@ -113,6 +114,8 @@ bool requese_handler(connection_t *_server, uint32_t *i, bool ret)
 {
     if (!ret)
         return false;
+    if (_server->_fds[*i].revents & (POLLHUP | POLLERR))
+        return client_disconnect(_server, i);
     if (!(_server->_fds[*i].revents & POLLIN))
         return true;
     if (_server->_fdsm[*i]._type == FD_SERVER)

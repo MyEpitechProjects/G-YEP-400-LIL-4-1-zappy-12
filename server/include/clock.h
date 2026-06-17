@@ -10,16 +10,16 @@
     #include <stdint.h>
     #include <stdbool.h>
     #include <time.h>
+    #include <sys/time.h>
+
 
 typedef struct myclock_t {
-    time_t base;
-    time_t offset;
+    uint64_t base;
+    uint64_t offset;
     bool active;
 } myclock_t;
 
 myclock_t *reset_clock(myclock_t *_clock);
-
-myclock_t *create_clock(void);
 
 myclock_t *start_clock(myclock_t *_clock);
 

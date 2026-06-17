@@ -40,8 +40,6 @@ static bool gui_start_player_login(connection_t *_server, uint64_t i)
             &_server->zappy.players[w]);
         intern_protocol_player_inventory(_server, i,
             &_server->zappy.players[w]);
-        intern_protocol_player_level(_server, i,
-            &_server->zappy.players[w]);
     }
     return gui_start_egg(_server);
 }

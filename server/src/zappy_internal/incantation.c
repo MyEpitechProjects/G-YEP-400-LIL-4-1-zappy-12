@@ -22,18 +22,23 @@ static bool check_incantation_items(const inventory_t *inv_tile,
 }
 
 static bool check_incantation_player(zappy_t *zappy,
-    uint64_t min_player, uint64_t incantationLevel, bool startCheck)
+    const incantation_type_t *target, pos_t *targetPos, bool startCheck)
 {
     uint64_t count = 0;
 
     for (uint64_t i = 0; i < zappy->nb_players; i++){
+        if (zappy->players[i].incanting && startCheck &&
+            zappy->players[i].pos.x == targetPos->x &&
+            zappy->players[i].pos.y == targetPos->y)
+            return 0;
         if (zappy->players[i].dead ||
-            zappy->players[i].level != incantationLevel ||
-            (zappy->players[i].incanting && startCheck))
+            zappy->players[i].level != target->level ||
+            zappy->players[i].pos.x != targetPos->x ||
+            zappy->players[i].pos.y != targetPos->y)
             continue;
         count++;
     }
-    return count >= min_player;
+    return count >= target->nbPlayer;
 }
 
 bool check_incantation(connection_t *_server, const incantation_type_t *target,
@@ -45,7 +50,7 @@ bool check_incantation(connection_t *_server, const incantation_type_t *target,
     if (!target)
         return false;
     return (check_incantation_player(&_server->zappy,
-            target->nbPlayer, target->level, startCheck) &&
+            target, incantationPos, startCheck) &&
         check_incantation_items(&tile->inventory, &target->inv));
 }
 
@@ -72,7 +77,7 @@ static bool check_end(connection_t *_server)
     for (uint64_t i = 0; i < _server->arguments->team_number; i++){
         count = get_level8_palyers_by_team(_server,
             _server->arguments->teams_names[i]);
-        if (count >= WIN_LEVEL){
+        if (count >= WIN_PLAYER_COUNT){
             trigger_graphic_game_end(_server,
                 _server->arguments->teams_names[i]);
             return true;
@@ -109,7 +114,7 @@ bool check_incantation_finish(connection_t *_server, zappy_t *zappy)
             continue;
         inc_index = zappy->incantation[i].index;
         if (check_incantation(_server, zappy->incantation[i].type,
-                &zappy->incantation->pos, false)){
+                &zappy->incantation[i].pos, false)){
             trigger_gui_end_incantation(_server, zappy, i, true);
             trigger_ia_end_incantation_ok(_server, inc_index);
             remove_stones_incantation(_server, &_server->zappy.incantation[i]);

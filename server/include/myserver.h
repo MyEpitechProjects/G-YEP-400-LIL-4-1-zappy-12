@@ -107,6 +107,7 @@ bool start_server(arguments_t *arguments, int sdf);
 
 bool pop_buffer(connection_t *_server, uint32_t i, char *input);
 
+
 int free_server(connection_t *_server, bool code);
 unsigned int list_len(char **argv);
 uint64_t get_buffer_length(char *input);

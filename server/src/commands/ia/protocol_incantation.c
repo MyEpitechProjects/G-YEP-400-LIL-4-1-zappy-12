@@ -72,8 +72,11 @@ bool protocol_ia_incantation(connection_t *_server, uint32_t i,
     char **command)
 {
     player_t *me = get_player_by_id(_server, _server->_fdsm[i].id);
-    const incantation_type_t *type = get_incantation_type(me->level);
+    const incantation_type_t *type = NULL;
 
+    if (me->level >= WIN_LEVEL)
+        return protocol_ko(_server, i, command);
+    type = get_incantation_type(me->level);
     if (!check_incantation(_server, type, &me->pos, true) ||
         !push_incantation(_server, me, type))
         return protocol_ko(_server, i, command);

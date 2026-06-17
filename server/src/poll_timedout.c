@@ -111,5 +111,5 @@ int64_t get_timedout(connection_t *_server)
     time = compare_timedout(get_incantation_timedout(_server), time);
     if (time == -1)
         return -1;
-    return max(0, (uint64_t)time) * 1000;
+    return max(0, (uint64_t)time);
 }

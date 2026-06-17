@@ -17,11 +17,12 @@ bool intern_protocol_graphic_start_incantation(connection_t *_server,
 
     string = string_append_uint(string, pos->x, true);
     string = string_append_uint(string, pos->y, true);
+    string = string_append_uint(string, level, true);
     for (uint64_t x = 0; x < _server->zappy.nb_players; x++){
         me = &_server->zappy.players[x];
         if (!me || me->dead || me->level != level ||
             me->pos.x != pos->x || me->pos.y != pos->y ||
-            me->incanting)
+            !me->incanting)
             continue;
         string = string_append(string, "#", false);
         string = string_append_uint(string, me->index, true);

@@ -39,6 +39,7 @@ bool trigger_ia_end_incantation_ok(connection_t *_server,
             continue;
         me->incanting = false;
         me->level++;
+        trigger_graphic_player_level(_server, me);
         protocol_ia_incantation_end(_server, i, me);
     }
     return true;

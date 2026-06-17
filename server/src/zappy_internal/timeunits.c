@@ -11,7 +11,7 @@
 
 uint64_t calculate_time_freq(connection_t *_server, uint64_t value)
 {
-    return (uint64_t) (value / _server->arguments->freq);
+    return (uint64_t)((value * 1000ULL) / _server->arguments->freq);
 }
 
 uint64_t get_time_unit(connection_t *_server, unit_type_t type)

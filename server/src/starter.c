@@ -105,10 +105,13 @@ static bool run_server(connection_t *_server)
 
 bool client_disconnect(connection_t *_server, uint32_t *i)
 {
-    player_t *player = get_player_by_id(_server, _server->_fdsm[*i].id);
+    player_t *player = NULL;
 
-    player->dead = true;
-    trigger_graphic_player_death(_server, player);
+    if (_server->_fdsm[*i].client_type == CLIENT_IA) {
+        player = get_player_by_id(_server, _server->_fdsm[*i].id);
+        trigger_graphic_player_death(_server, player);
+        player->dead = true;
+    }
     pop_poller(_server, i);
     return true;
 }
@@ -116,9 +119,8 @@ bool client_disconnect(connection_t *_server, uint32_t *i)
 bool start_server(arguments_t *arguments, int sdf)
 {
     bool runCode = true;
-    connection_t _server;
+    connection_t _server = {0};
 
-    memset(&_server, 0, sizeof(connection_t));
     _server.arguments = arguments;
     if (!push_socket(&_server, arguments->port, SOMAXCONN, FD_SERVER) ||
         !init_zappy(&_server, &_server.zappy)) {

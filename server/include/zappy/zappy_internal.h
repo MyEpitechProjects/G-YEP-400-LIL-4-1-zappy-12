@@ -15,8 +15,10 @@
     #include "egg.h"
     #include "clock.h"
     #include "incantation.h"
+    #define FOOD_PERCENTAGE 10
     #define BASE_FOOD 10
     #define WIN_LEVEL 8
+    #define WIN_PLAYER_COUNT 6
     #define FOOD_SPAWN_UNIT 20
     #define EAT_UNIT 126
     #define INCANTATION_UNIT 300
@@ -251,6 +253,8 @@ bool trigger_graphic_ejected(connection_t *_server,
     player_t *player);
 bool trigger_graphic_game_end(connection_t *_server,
     const char *team);
+bool trigger_graphic_player_level(connection_t *_server,
+    player_t *player);
 
 bool protocol_ko(connection_t *_server, uint32_t i, char **command);
 bool protocol_ok(connection_t *_server, uint32_t i, char **command);

@@ -41,6 +41,7 @@ SRC =	src/server_push.c								\
 		src/commands/trigger/ia_end_incantation.c		\
 		src/commands/trigger/gui_game_end.c				\
 		src/commands/trigger/gui_end_incantation.c		\
+		src/commands/trigger/gui_player_level.c			\
 		src/commands/gui/protocol_collect.c				\
 		src/commands/gui/protocol_drop.c				\
 		src/commands/gui/protocol_start.c				\

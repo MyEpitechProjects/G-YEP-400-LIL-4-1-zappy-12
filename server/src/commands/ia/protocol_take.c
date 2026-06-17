@@ -26,7 +26,7 @@ bool protocol_ia_take(connection_t *_server, uint32_t i,
             continue;
         if (!switch_item(_server, i, inv_tile[x], inv_me[x]))
             return true;
-        trigger_graphic_drop(_server, me, x);
+        trigger_graphic_collect(_server, me, x);
         trigger_graphic_player_inv(_server, me);
         return trigger_graphic_tile_change(_server, tile);
     }
