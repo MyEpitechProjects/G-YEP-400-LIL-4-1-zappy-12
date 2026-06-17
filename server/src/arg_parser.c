@@ -94,7 +94,8 @@ bool check_args(arguments_t *args, int argc, char **argv)
         args->freq = 100;
     }
     if (args->port > 0 && args->freq > 0 && args->height > 0 &&
-        args->client_number > 0 && args->team_number > 0 && args->width > 0){
+        args->client_number > 0 && args->team_number > 0 && args->width > 0 &&
+        args->height <= 42 && args->width <= 42){
         return true;
     }
     return false;
