@@ -89,7 +89,7 @@ SRC =	src/server_push.c								\
 OBJ = $(SRC:.c=.o)
 
 CC = epiclang
-CFLAGS  =	-Wall -Wextra -std=gnu17 -Iinclude -g \
+CFLAGS  =	-Wall -Wextra -std=gnu17 -Iinclude \
 			-I../common/include
 LDFLAGS = -luuid
 
