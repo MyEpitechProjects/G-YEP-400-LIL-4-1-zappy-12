@@ -15,8 +15,7 @@ uint64_t get_available_eggs(connection_t *_server, char *team)
 
     for (uint64_t i = 0; i < _server->zappy.nb_eggs; i++){
         if (strcmp(_server->zappy.eggs[i].team, team) == 0 &&
-            !_server->zappy.eggs[i].taken &&
-            _server->zappy.eggs[i].hatched)
+            !_server->zappy.eggs[i].taken)
             res++;
     }
     return res;
@@ -45,8 +44,7 @@ egg_t *get_egg_by_team(connection_t *_server, char *team)
 {
     for (uint64_t i = 0; i < _server->zappy.nb_eggs; i++){
         if (strcmp(_server->zappy.eggs[i].team, team) == 0 &&
-            !_server->zappy.eggs[i].taken &&
-            _server->zappy.eggs[i].hatched)
+            !_server->zappy.eggs[i].taken)
             return &_server->zappy.eggs[i];
     }
     return NULL;

@@ -10,7 +10,6 @@
     #include <stdbool.h>
     #include <stdint.h>
     #include "position.h"
-    #include "clock.h"
 
 typedef struct egg_t {
     pos_t pos;
@@ -19,8 +18,6 @@ typedef struct egg_t {
     orientation_t o;
     char *team;
     bool taken;
-    bool hatched;
-    myclock_t hatchClock;
 } egg_t;
 
 #endif

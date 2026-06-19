@@ -44,7 +44,6 @@ static bool push_egg(connection_t *_server,
         set_pos_xy(&me->pos, randint(_server->arguments->width),
             randint(_server->arguments->height));
         me->o = randint(ORIENTATION_WEST + 1);
-        start_clock(&me->hatchClock);
         return trigger_graphic_egg_layed(_server,
             me);
     }
