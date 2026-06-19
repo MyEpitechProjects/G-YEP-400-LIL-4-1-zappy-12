@@ -94,6 +94,7 @@ static bool run_server(connection_t *_server)
         if (!is_buffer_empty(_server))
             timedout = 0;
         spawn_food(_server, &_server->zappy);
+        check_eggs_hatch(_server, &_server->zappy);
         poll(_server->_fds, _server->nfds, timedout);
         for (uint32_t i = 0; i < _server->nfds;){
             ret = execute_client(_server, &i, ret);

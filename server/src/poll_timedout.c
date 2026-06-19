@@ -102,6 +102,28 @@ static int64_t compare_timedout(int64_t a, int64_t b)
     return min(a, b);
 }
 
+static int64_t get_hatch_timedout(connection_t *_server)
+{
+    uint64_t hatchUnit = 0;
+    uint64_t calculated_time = 0;
+    int64_t time = -1;
+    bool first = true;
+
+    for (uint32_t i = 0; i < _server->zappy.nb_eggs; i++){
+        if (_server->zappy.eggs[i].hatched || _server->zappy.eggs[i].taken)
+            continue;
+        hatchUnit = calculate_time_freq(_server, HATCH_UNIT);
+        calculated_time = (hatchUnit -
+            get_elapsed(&_server->zappy.eggs[i].hatchClock));
+        if (first)
+            time = calculated_time;
+        else
+            time = min(time, calculated_time);
+        first = false;
+    }
+    return time;
+}
+
 int64_t get_timedout(connection_t *_server)
 {
     int64_t time = get_respawn_timedout(_server);
@@ -109,6 +131,7 @@ int64_t get_timedout(connection_t *_server)
     time = compare_timedout(get_eat_timedout(_server), time);
     time = compare_timedout(get_command_timedout(_server), time);
     time = compare_timedout(get_incantation_timedout(_server), time);
+    time = compare_timedout(get_hatch_timedout(_server), time);
     if (time == -1)
         return -1;
     return max(0, (uint64_t)time);

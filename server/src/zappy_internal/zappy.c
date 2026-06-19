@@ -34,6 +34,19 @@ bool spawn_food(connection_t *_server, zappy_t *zappy)
     return true;
 }
 
+bool check_eggs_hatch(connection_t *_server, zappy_t *zappy)
+{
+    uint64_t hatchUnit = calculate_time_freq(_server, HATCH_UNIT);
+
+    for (uint64_t i = 0; i < zappy->nb_eggs; i++){
+        if (zappy->eggs[i].hatched || zappy->eggs[i].taken)
+            continue;
+        if (get_elapsed(&zappy->eggs[i].hatchClock) >= hatchUnit)
+            zappy->eggs[i].hatched = true;
+    }
+    return true;
+}
+
 static bool set_eggs(connection_t *_server, zappy_t *zappy)
 {
     uint64_t count = 0;
@@ -46,6 +59,7 @@ static bool set_eggs(connection_t *_server, zappy_t *zappy)
         zappy->eggs[i].pos.y = randint(_server->arguments->height);
         zappy->eggs[i].team = _server->arguments->teams_names[count];
         zappy->eggs[i].o = randint(ORIENTATION_WEST + 1);
+        zappy->eggs[i].hatched = true;
         if ((count2 + 1) == _server->arguments->client_number){
             count++;
             count2 = 0;
