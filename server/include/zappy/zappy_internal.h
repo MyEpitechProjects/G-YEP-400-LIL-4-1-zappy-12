@@ -22,6 +22,7 @@
     #define FOOD_SPAWN_UNIT 20
     #define EAT_UNIT 126
     #define INCANTATION_UNIT 300
+    #define HATCH_UNIT 600
     #define DENSITY_FOOD 50
     #define DENSITY_LINEMATE 30
     #define DENSITY_DERAUMERE 15
@@ -45,6 +46,7 @@ typedef enum unit_type_t {
     UNIT_INCANTATION,
     UNIT_SURVIE,
     UNIT_RESPAWN_RESOURCES,
+    UNIT_HATCH,
 } unit_type_t;
 
 typedef enum resource_type_t {
@@ -86,6 +88,7 @@ static const unit_t unit_values[] = {
     {UNIT_FORK, 42},
     {UNIT_SURVIE, 126},
     {UNIT_RESPAWN_RESOURCES, 20},
+    {UNIT_HATCH, 600},
     {UNIT_NONE, 0},
 };
 
@@ -110,6 +113,7 @@ char *string_end(char *string);
 
 bool init_zappy(connection_t *_server, zappy_t *zappy);
 bool need_food_respawn(connection_t *_server, zappy_t *zappy);
+bool check_eggs_hatch(connection_t *_server, zappy_t *zappy);
 pos_t *set_pos_xy(pos_t *pos, uint64_t x, uint64_t y);
 uint64_t tile_pos_to_index(connection_t *_server, uint64_t x, uint64_t y);
 egg_t *get_egg_by_team(connection_t *_server, char *team);
