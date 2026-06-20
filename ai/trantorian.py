@@ -6,10 +6,11 @@
 ##
 
 import random
+import time
 
 from ai.protocol import parse_inventory, parse_look
 from ai.navigation import step_forward, turn_right, turn_left
-from ai.constants import EXPLORE, FOOD_LOW_LIMIT, FOOD_SAFE_LIMIT
+from ai.constants import FORAGE, FOOD_CRITICAL, FOOD_LOW_LIMIT, HEARD_TIMEOUT, POP_MEMORY, KING_STABLE_ROUNDS, KING_STICKY
 
 class Trantorian:
 
@@ -22,65 +23,121 @@ class Trantorian:
         self.inventory = {"food": 10, "linemate": 0, "deraumere": 0, "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0}
         self.available_slots = initial_slots
         self.pending_commands = 0
-        self.heard_calls = []
-        self.is_anchor = False
-        self.gather_token = random.randint(0, 999999)
-        self.actions_since_fork = 0
+        self.token = random.randint(1, 999999999)
+        self.heard = {}
+        self.seen = {}
+        self.tick = 0
+        self.is_king = False
+        self.king_stable = 0
+        self.king_direction = None
+        self.has_anchor = False
+        self.anchor_x = 0
+        self.anchor_y = 0
+        self.broadcast_counter = 0
         self.x = 0
         self.y = 0
         self.orientation = 0
         self.visited = {}
         self.last_incant_failed = False
-        self.state = EXPLORE
-        self.anchor_token = None
-        self.gather_silence = 0
-        self.anchor_confirmations = 0
-        self.ready_calls = []
-        self.ready_players = {}
-        self.ready_repeat_counter = 0
-        self.coordination_tick = 0
         self.food_emergency = False
-
+        self.rally_stall = 0
+        self.last_fork_tick = -9999
+        self.start_time = time.time()
+        self.state = FORAGE
 
     def update_food_emergency(self):
         """Update food emergency mode using hysteresis thresholds."""
 
         food = self.inventory.get("food", 0)
         if self.food_emergency:
-            if food >= FOOD_SAFE_LIMIT:
+            if food >= FOOD_LOW_LIMIT:
                 self.food_emergency = False
-        elif food <= FOOD_LOW_LIMIT:
+        elif food <= FOOD_CRITICAL:
             self.food_emergency = True
         return self.food_emergency
 
-    def reset_gather_state(self):
-        """Reset gathering and ritual coordination state."""
+    def note_heartbeat(self, direction, token, level, king_flag):
+        """Record a coordination heartbeat from another team member."""
 
-        self.state = EXPLORE
-        self.is_anchor = False
-        self.anchor_token = None
-        self.gather_silence = 0
-        self.anchor_confirmations = 0
-        self.heard_calls = []
-        self.ready_calls = []
-        self.ready_players = {}
-        self.ready_repeat_counter = 0
-        self.coordination_tick = 0
+        if token == self.token:
+            return
+        self.heard[token] = [self.tick, direction, level, king_flag]
+        self.seen[token] = self.tick
 
-    def reset_election(self):
-        """Start a fresh anchor election for the current level."""
+    def prune_heard(self):
+        """Forget stale per-tile heartbeats and stale population sightings."""
 
-        self.reset_gather_state()
-        self.gather_token = random.randint(0, 999999)
-        self.last_incant_failed = False
+        stale = [token for token, info in self.heard.items() if self.tick - info[0] > HEARD_TIMEOUT]
+        for token in stale:
+            del self.heard[token]
+        gone = [token for token, last in self.seen.items() if self.tick - last > POP_MEMORY]
+        for token in gone:
+            del self.seen[token]
+
+    def update_role(self):
+        """Elect the sticky team king (an established king keeps its crown)."""
+
+        was_stable_king = self.is_king and self.king_stable >= KING_STABLE_ROUNDS
+        best_priority = self.token + (KING_STICKY if was_stable_king else 0)
+        best_direction = None
+        best_is_self = True
+        for token, info in self.heard.items():
+            priority = token + (KING_STICKY if info[3] else 0)
+            if priority > best_priority:
+                best_priority = priority
+                best_direction = info[1]
+                best_is_self = False
+        if best_is_self:
+            if not self.is_king:
+                self.king_stable = 0
+            self.is_king = True
+            self.king_stable += 1
+            self.king_direction = 0
+            if not self.has_anchor:
+                self.anchor_x = self.x
+                self.anchor_y = self.y
+                self.has_anchor = True
+        else:
+            self.is_king = False
+            self.king_stable = 0
+            self.king_direction = best_direction
+            self.has_anchor = False
+
+    def king_is_stable(self):
+        """True once king ownership has held long enough to act on it."""
+
+        return self.is_king and self.king_stable >= KING_STABLE_ROUNDS
+
+    def population_estimate(self):
+        """Estimate alive team members from recently-seen distinct tokens."""
+
+        return 1 + len(self.seen)
+
+    def same_tile_same_level_count(self):
+        """Count same-level team members heard from the current tile."""
+
+        count = 0
+        for info in self.heard.values():
+            if info[1] == 0 and info[2] == self.level:
+                count += 1
+        return count
+
+    def is_min_token_on_tile(self):
+        """True if this agent owns the lowest token among same-level peers here."""
+
+        for token, info in self.heard.items():
+            if info[1] == 0 and info[2] == self.level and token < self.token:
+                return False
+        return True
 
     def update_level(self, new_level):
-        """Update the level and restart anchor election after elevation."""
+        """Update the level after an elevation and clear stale vision."""
 
         if new_level == self.level:
             return
         self.level = new_level
-        self.reset_election()
+        self.last_incant_failed = False
+        self.rally_stall = 0
         self.vision = []
 
     def update_from_response(self, action, response, object_name=None):

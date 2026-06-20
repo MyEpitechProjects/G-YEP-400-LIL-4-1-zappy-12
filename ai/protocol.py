@@ -68,36 +68,19 @@ def parse_look(response):
         list_tiles.append(tile)
     return list_tiles
 
-def build_gather_message(team_name, level, anchor_token):
-    """Build a typed gathering broadcast message."""
+def build_heartbeat(team_name, token, level, king_flag):
+    """Build the universal coordination heartbeat message."""
 
-    return f"GATHER:{team_name}:{level}:{anchor_token}"
+    return f"Z:{team_name}:{token}:{level}:{king_flag}"
 
-def build_ready_message(team_name, level,anchor_token, player_token):
-    """Build a typed ready broadcast message."""
-
-    return f"READY:{team_name}:{level}:"f"{anchor_token}:{player_token}"
-
-def parse_gather_call(text):
-    """Parse a GATHER coordination message."""
-
-    parts = text.split(":")
-    if len(parts) != 4:
-        return None
-    if parts[0] != "GATHER":
-        return None
-    if not parts[2].isdigit() or not parts[3].isdigit():
-        return None
-    return parts[1], int(parts[2]), int(parts[3])
-
-def parse_ready_call(text):
-    """Parse a READY coordination message."""
+def parse_heartbeat(text):
+    """Parse a heartbeat into (team, token, level, king_flag) or None if bad."""
 
     parts = text.split(":")
     if len(parts) != 5:
         return None
-    if parts[0] != "READY":
+    if parts[0] != "Z":
         return None
     if not parts[2].isdigit() or not parts[3].isdigit() or not parts[4].isdigit():
         return None
-    return  parts[1], int(parts[2]), int(parts[3]), int(parts[4])
+    return parts[1], int(parts[2]), int(parts[3]), int(parts[4])

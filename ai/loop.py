@@ -6,9 +6,9 @@
 ##
 
 from ai.trantorian import Trantorian
-from ai.protocol import is_async_message, is_incantation_event, parse_broadcast, parse_gather_call, parse_ready_call
+from ai.protocol import is_async_message, is_incantation_event, parse_broadcast, parse_heartbeat
 from ai.strategy import build_plan
-from ai.fork import spawn_child
+from ai.fork import spawn_child, spawn_children, fill_count
 from ai.constants import PIPELINE_CAP, CONNECT_NBR_PERIOD, INVENTORY_REFRESH_PERIOD
 
 def send_command(socket_file, command):
@@ -21,6 +21,21 @@ def send_command(socket_file, command):
         print(f"Connection lost while sending '{command}': {error}")
         return False
     return True
+
+def handle_async_line(line, trantorian):
+    """Record heartbeats from team-mates; keep other async lines visible."""
+
+    if line.startswith("message "):
+        broadcast = parse_broadcast(line)
+        if broadcast is not None:
+            direction, text = broadcast
+            heartbeat = parse_heartbeat(text)
+            if heartbeat is not None:
+                team, token, level, king_flag = heartbeat
+                if team == trantorian.team_name:
+                    trantorian.note_heartbeat(direction, token, level, king_flag)
+                return
+    print(f"[async] {line}")
 
 def read_response(socket_file, trantorian, expecting_incantation):
     """Read a meaningful response and detect a closed connection."""
@@ -38,38 +53,28 @@ def read_response(socket_file, trantorian, expecting_incantation):
         if line == "":
             continue
         if is_async_message(line):
-            if line.startswith("message "):
-                broadcast = parse_broadcast(line)
-                if broadcast is not None:
-                    direction, text = broadcast
-                    if parse_gather_call(text) is not None:
-                        trantorian.heard_calls = (trantorian.heard_calls + [(direction, text)])[-20:]
-                    elif parse_ready_call(text) is not None:
-                        trantorian.ready_calls = (trantorian.ready_calls + [(direction, text)])[-50:]
-            print(f"[async] {line}")
+            handle_async_line(line, trantorian)
             continue
         if not expecting_incantation and is_incantation_event(line):
             if line.startswith("Current level:"):
                 level = line.split("Current level:")[-1].strip()
                 if level.isdigit():
                     trantorian.update_level(int(level))
-                trantorian.vision = []
             print(f"[async] {line}")
             continue
         return line
-    
+
 def handle_response(trantorian, verb, object_name, response):
     """Apply one response to the agent state. Returns False if dead."""
-    print(f"[Buffer: {trantorian.pending_commands}/10] {verb:<11} -> {response}")
+
+    flag = "K" if trantorian.is_king else "w"
+    print(f"[L{trantorian.level} {trantorian.state} {flag} buf{trantorian.pending_commands}] {verb:<11} -> {response}")
     if response == "dead":
         print("The trantorian is dead")
         return False
     trantorian.update_from_response(verb, response, object_name)
-    if verb == "Fork":
-        trantorian.actions_since_fork = 0
-        if response == "ok":
-            spawn_child(trantorian)
-    trantorian.actions_since_fork += 1
+    if verb == "Fork" and response == "ok":
+        spawn_child(trantorian)
     return True
 
 def execute_plan(socket_file, trantorian, plan):
@@ -102,12 +107,13 @@ def execute_plan(socket_file, trantorian, plan):
             response = (f"{response} / {second_response}")
         trantorian.pending_commands -= 1
         executed += 1
-        if not handle_response(trantorian, verb, object_name,response):
+        if not handle_response(trantorian, verb, object_name, response):
             return False, executed
     return True, executed
 
 def run_ai(trantorian: Trantorian, socket_file):
     """Run the main AI loop and communicate with the server."""
+
     since_inventory = 0
     since_connect = 0
     while True:
@@ -122,5 +128,7 @@ def run_ai(trantorian: Trantorian, socket_file):
         alive, executed = execute_plan(socket_file, trantorian, plan)
         if not alive:
             break
+        if plan == ["Connect_nbr"]:
+            spawn_children(trantorian, fill_count(trantorian))
         since_inventory += executed
         since_connect += executed

@@ -9,6 +9,7 @@ import sys
 
 def parse_arguments(arguments: list) -> tuple[int, str, str]:
     """Parse arguments and return (port, name, machine) or exit if invalid."""
+
     port = 0
     name = ""
     machine = "localhost"

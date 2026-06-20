@@ -8,16 +8,24 @@
 from ai.constants import REQUIREMENTS, STONES
 
 def has_required_stones_in_inventory(level, inventory):
-    """Check if inventory contains all stones required for next level."""
+    """Check if inventory contains enough stones to trigger a gather (pooling)."""
 
     level_to_reach = level + 1
     if level_to_reach not in REQUIREMENTS:
         return False
     requirements = REQUIREMENTS[level_to_reach]
+    missing = 0
     for stone in STONES:
         if inventory.get(stone, 0) < requirements.get(stone, 0):
-            return False
-    return True
+            missing += requirements.get(stone, 0) - inventory.get(stone, 0)
+    if level_to_reach <= 3:
+        return missing == 0
+    elif level_to_reach <= 5:
+        return missing <= 2
+    elif level_to_reach <= 7:
+        return missing <= 5
+    else:
+        return missing <= 8
 
 def missing_stone_visible(level, inventory, vision):
     """Check if a missing stone is visible in current vision."""

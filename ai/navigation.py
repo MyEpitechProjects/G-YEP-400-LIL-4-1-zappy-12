@@ -55,19 +55,23 @@ def moves_toward_sound(direction):
 
 def turn_right(orientation):
     """90 deg clockwise: N -> E -> S -> W -> N."""
+
     return (orientation + 1) % 4
 
 def turn_left(orientation):
     """90 deg counter-clockwise: N -> W -> S -> E -> N."""
+
     return (orientation - 1) % 4
 
 def step_forward(x, y, orientation, width, height):
     """Advance one tile in the facing direction, wrapping on the toroidal map."""
+
     dx, dy = FORWARD_DELTA[orientation]
     return (x + dx) % width, (y + dy) % height
 
 def turns_to_face(current, target):
     """Minimal list of 'Right'/'Left' to rotate from current orientation to target."""
+
     diff = (target - current) % 4
     if diff == 0:
         return []
@@ -76,3 +80,16 @@ def turns_to_face(current, target):
     if diff == 2:
         return ["Right", "Right"]
     return ["Left"]
+
+def navigate_to(x, y, orientation, target_x, target_y, width, height):
+    """One step along the toroidal shortest path toward a target tile."""
+
+    dx = (target_x - x) % width
+    dy = (target_y - y) % height
+    if dx != 0:
+        target_orientation = 1 if dx <= width - dx else 3
+        return turns_to_face(orientation, target_orientation) + ["Forward"]
+    if dy != 0:
+        target_orientation = 2 if dy <= height - dy else 0
+        return turns_to_face(orientation, target_orientation) + ["Forward"]
+    return []
