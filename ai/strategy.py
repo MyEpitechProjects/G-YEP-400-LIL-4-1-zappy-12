@@ -137,7 +137,8 @@ def heartbeat_command(trantorian):
     """Build the periodic coordination broadcast command."""
 
     king_flag = 1 if trantorian.king_is_stable() else 0
-    return "Broadcast " + build_heartbeat(trantorian.team_name, trantorian.token, trantorian.level, king_flag)
+    message = build_heartbeat(trantorian.team_name, trantorian.token, trantorian.level, king_flag, trantorian.state, trantorian.tick)
+    return "Broadcast " + message
 
 def should_broadcast(trantorian):
     """Advance the broadcast clock and tell whether to emit a heartbeat now."""

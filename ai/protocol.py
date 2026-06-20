@@ -68,19 +68,30 @@ def parse_look(response):
         list_tiles.append(tile)
     return list_tiles
 
-def build_heartbeat(team_name, token, level, king_flag):
+def build_heartbeat(team_name, token, level, king_flag, state, sequence):
     """Build the universal coordination heartbeat message."""
 
-    return f"Z:{team_name}:{token}:{level}:{king_flag}"
+    return (f"Z:{team_name}:{token}:{level}:"f"{king_flag}:{state}:{sequence}")
 
 def parse_heartbeat(text):
-    """Parse a heartbeat into (team, token, level, king_flag) or None if bad."""
+    """Parse a heartbeat into structured coordination data."""
 
     parts = text.split(":")
-    if len(parts) != 5:
+    if len(parts) != 7:
         return None
     if parts[0] != "Z":
         return None
-    if not parts[2].isdigit() or not parts[3].isdigit() or not parts[4].isdigit():
+    if not parts[2].isdigit():
         return None
-    return parts[1], int(parts[2]), int(parts[3]), int(parts[4])
+    if not parts[3].isdigit():
+        return None
+    if not parts[4].isdigit():
+        return None
+    if not parts[6].isdigit():
+        return None
+    king_flag = int(parts[4])
+    if king_flag not in (0, 1):
+        return None
+    if parts[5] == "":
+        return None
+    return parts[1], int(parts[2]), int(parts[3]), king_flag, parts[5], int(parts[6])

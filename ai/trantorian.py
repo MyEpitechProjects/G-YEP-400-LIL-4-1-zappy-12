@@ -56,12 +56,15 @@ class Trantorian:
             self.food_emergency = True
         return self.food_emergency
 
-    def note_heartbeat(self, direction, token, level, king_flag):
-        """Record a coordination heartbeat from another team member."""
+    def note_heartbeat(self, direction, token, level, king_flag, state, sequence):
+        """Record the newest heartbeat from another team member."""
 
         if token == self.token:
             return
-        self.heard[token] = [self.tick, direction, level, king_flag]
+        previous = self.heard.get(token)
+        if previous is not None and sequence <= previous[5]:
+            return
+        self.heard[token] = [self.tick, direction, level, king_flag, state, sequence]
         self.seen[token] = self.tick
 
     def prune_heard(self):

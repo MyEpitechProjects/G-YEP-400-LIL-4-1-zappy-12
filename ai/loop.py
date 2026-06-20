@@ -23,7 +23,7 @@ def send_command(socket_file, command):
     return True
 
 def handle_async_line(line, trantorian):
-    """Record heartbeats from team-mates; keep other async lines visible."""
+    """Record valid heartbeats from team members."""
 
     if line.startswith("message "):
         broadcast = parse_broadcast(line)
@@ -31,9 +31,9 @@ def handle_async_line(line, trantorian):
             direction, text = broadcast
             heartbeat = parse_heartbeat(text)
             if heartbeat is not None:
-                team, token, level, king_flag = heartbeat
+                team, token, level, king_flag, state, sequence = heartbeat
                 if team == trantorian.team_name:
-                    trantorian.note_heartbeat(direction, token, level, king_flag)
+                    trantorian.note_heartbeat(direction, token, level, king_flag, state, sequence)
                 return
     print(f"[async] {line}")
 
