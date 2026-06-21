@@ -11,14 +11,12 @@ on:
   push:
   workflow_dispatch:
 
-# Allows you to define the Docker image for ALL jobs and avoids having to perform complex "docker run" commands at each step
 defaults:
   run:
     shell: bash
 
 jobs:
 
-  # JOB 1: Server compilation
   build_server:
     name: Build zappy_server
     runs-on: ubuntu-latest
@@ -37,7 +35,6 @@ jobs:
             exit 1
           fi
 
-  # JOB 2: AI Compilation (Runs in parallel with the server)
   build_ai:
     name: Build zappy_ai
     runs-on: ubuntu-latest
@@ -56,13 +53,11 @@ jobs:
             exit 1
           fi
 
-  # JOB 3: Unit Tests (Only runs if builds pass)
   unit_tests:
     name: Run Unit Tests
     runs-on: ubuntu-latest
     container: epitechcontent/epitest-docker:latest
-    # The keyword "needs" ensures that if a build fails, the tests will not run.
-    needs: [build_server, build_ai, build_gui]
+    needs: [build_server, build_ai]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -70,23 +65,19 @@ jobs:
       - name: Make tests_run
         run: make tests_run
 
-  # JOB 5: Cleaning & Checks (Only starts if tests pass)
   clean_checks:
     name: Make fclean and Check rules
     runs-on: ubuntu-latest
     container: epitechcontent/epitest-docker:latest
-    # Ensure that the tests are green before testing fclean
     needs: unit_tests
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run Makefile rules (all, clean, fclean)
+      - name: Run Makefile rules
         run: |
-          # 1. Compile tout
           make all
           
-          # 2. Test du clean (conserve les binaires)
           make clean
           found=$(find . \( -name "*.o" -o -name "*.gcno" -o -name "*.gcda" -o -name "*~" -o -name "#*#" -o -name "*.tmp" \) -print -quit)
           if [ -n "$found" ]; then
@@ -98,9 +89,8 @@ jobs:
             exit 1
           fi
 
-          # 3. Test du fclean (supprime tout)
           make fclean
-          if [ -e "./zappy_server" ] || [ -e "./zappy_ai" ] || [ -e "./zappy_gui" ]; then
+          if [ -e "./zappy_server" ] || [ -e "./zappy_ai" ]; then
             echo "::error::fclean did not remove executables"
             exit 1
           fi
