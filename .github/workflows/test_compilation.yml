@@ -2,95 +2,105 @@
 ## EPITECH PROJECT, 2026
 ## G-YEP-400 : .github/workflows/test_compilation.yml
 ## File description:
-## Test if the project compile in official environnement
+## Test compilation, unit tests, and cleaning in official environment
 ##
 
-name: Test compilation
+name: CI Zappy
 
 on:
   push:
   workflow_dispatch:
 
-jobs:
-  compilation:
-    name: Compile in Epitech Docker
-    runs-on: ubuntu-latest
+# Allows you to define the Docker image for ALL jobs and avoids having to perform complex "docker run" commands at each step
+defaults:
+  run:
+    shell: bash
 
+jobs:
+
+  # JOB 1: Server compilation
+  build_server:
+    name: Build zappy_server
+    runs-on: ubuntu-latest
+    container: epitechcontent/epitest-docker:latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Pull Epitech Docker image
-        run: docker pull epitechcontent/epitest-docker:latest
+      - name: Make zappy_server
+        run: make zappy_server
 
-      - name: Run compilation checks
+      - name: Check server executable
         run: |
-          docker run --rm \
-            -v "$PWD:/workspace" \
-            -w /workspace \
-            epitechcontent/epitest-docker:latest \
-            bash -lc '
-              set -e
+          if [ ! -x "./zappy_server" ]; then
+            echo "::error::zappy_server is missing or not executable"
+            exit 1
+          fi
 
-              check_executable() {
-                if [ ! -x "$1" ]; then
-                  echo "::error::$1 is missing or not executable"
-                  exit 1
-                fi
-              }
+  # JOB 2: AI Compilation (Runs in parallel with the server)
+  build_ai:
+    name: Build zappy_ai
+    runs-on: ubuntu-latest
+    container: epitechcontent/epitest-docker:latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-              check_not_exists() {
-                if [ -e "$1" ]; then
-                  echo "::error::$1 should not exist"
-                  exit 1
-                fi
-              }
+      - name: Make zappy_ai
+        run: make zappy_ai
 
-              check_no_temp_files() {
-                found=$(find . \( \
-                  -name "*.o" -o \
-                  -name "*.gcno" -o \
-                  -name "*.gcda" -o \
-                  -name "*~" -o \
-                  -name "#*#" -o \
-                  -name "*.tmp" \
-                \) -print -quit)
+      - name: Check ai executable
+        run: |
+          if [ ! -x "./zappy_ai" ]; then
+            echo "::error::zappy_ai is missing or not executable"
+            exit 1
+          fi
 
-                if [ -n "$found" ]; then
-                  echo "::error::temporary/object file still exists: $found"
-                  exit 1
-                fi
-              }
+  # JOB 3: Unit Tests (Only runs if builds pass)
+  unit_tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    container: epitechcontent/epitest-docker:latest
+    # The keyword "needs" ensures that if a build fails, the tests will not run.
+    needs: [build_server, build_ai, build_gui]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-              echo "Step 1 : make zappy_server"
-              make zappy_server
-              check_executable ./zappy_server
+      - name: Make tests_run
+        run: make tests_run
 
-              echo "Step 2 : make zappy_ai"
-              make zappy_ai
-              check_executable ./zappy_ai
+  # JOB 5: Cleaning & Checks (Only starts if tests pass)
+  clean_checks:
+    name: Make fclean and Check rules
+    runs-on: ubuntu-latest
+    container: epitechcontent/epitest-docker:latest
+    # Ensure that the tests are green before testing fclean
+    needs: unit_tests
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-              echo "Step 3 : make fclean"
-              make fclean
-              check_not_exists ./zappy_server
-              check_not_exists ./zappy_ai
-              check_no_temp_files
+      - name: Run Makefile rules (all, clean, fclean)
+        run: |
+          # 1. Compile tout
+          make all
+          
+          # 2. Test du clean (conserve les binaires)
+          make clean
+          found=$(find . \( -name "*.o" -o -name "*.gcno" -o -name "*.gcda" -o -name "*~" -o -name "#*#" -o -name "*.tmp" \) -print -quit)
+          if [ -n "$found" ]; then
+            echo "::error::temporary/object file still exists after clean: $found"
+            exit 1
+          fi
+          if [ ! -x "./zappy_server" ] || [ ! -x "./zappy_ai" ]; then
+            echo "::error::clean rule deleted executables"
+            exit 1
+          fi
 
-              echo "Step 4 : make all"
-              make all
-              check_executable ./zappy_server
-              check_executable ./zappy_ai
-
-              echo "Step 5 : make clean"
-              make clean
-              check_no_temp_files
-              check_executable ./zappy_server
-              check_executable ./zappy_ai
-
-              echo "Step 6 : make fclean"
-              make fclean
-              check_not_exists ./zappy_server
-              check_not_exists ./zappy_ai
-              check_no_temp_files
-
-              echo "All compilation checks passed."'
+          # 3. Test du fclean (supprime tout)
+          make fclean
+          if [ -e "./zappy_server" ] || [ -e "./zappy_ai" ] || [ -e "./zappy_gui" ]; then
+            echo "::error::fclean did not remove executables"
+            exit 1
+          fi
