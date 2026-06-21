@@ -5,7 +5,7 @@
 ## Decision making: king-rally coordination state machine
 ##
 
-from ai.constants import REQUIREMENTS, STONES, HOARD_TARGET, SURVIVE, SOLO, KING, CONVERGE, RALLY, FORAGE, FOOD_TRAVEL_TARGET, FOOD_LOW_LIMIT, FOOD_RALLY_HIGH, FOOD_RALLY_ORBIT, KING_FOOD_KEEP, HIGH_FOOD_PRIORITY, NORMAL_FOOD_PRIORITY, STONE_PRIORITY, DISTANCE_PENALTY, CURRENT_TILE_BONUS, RALLY_STALL_LIMIT, WORKER_HEARTBEAT_PERIOD, KING_HEARTBEAT_PERIOD
+from ai.constants import REQUIREMENTS, STONES, HOARD_TARGET, SURVIVE, SOLO, KING, CONVERGE, RALLY, FORAGE, FOOD_TRAVEL_TARGET, FOOD_LOW_LIMIT, FOOD_RALLY_HIGH, FOOD_RALLY_ORBIT, KING_FOOD_KEEP, HIGH_FOOD_PRIORITY, NORMAL_FOOD_PRIORITY, STONE_PRIORITY, DISTANCE_PENALTY, CURRENT_TILE_BONUS, RALLY_STALL_LIMIT, WORKER_HEARTBEAT_PERIOD, KING_HEARTBEAT_PERIOD, EJECT_ALLY_MAX_AGE, EJECT_CONFIRM_ROUNDS, EJECT_COOLDOWN
 from ai.protocol import build_heartbeat
 from ai.fork import should_fork
 from ai.navigation import distance_from_tile_index, build_move_plan, moves_toward_sound, step_forward, turns_to_face, navigate_to
@@ -150,6 +150,36 @@ def should_broadcast(trantorian):
         return True
     return False
 
+def eject_strategy_plan(trantorian, tile):
+    """Confirm that the only other player is not a team member before ejecting."""
+
+    player_count = tile.get("player", 0)
+    if trantorian.level <= 1:
+        trantorian.reset_eject_check()
+        return None
+    if trantorian.is_king or trantorian.king_direction == 0:
+        trantorian.reset_eject_check()
+        return None
+    if trantorian.tick - trantorian.last_eject_tick < EJECT_COOLDOWN:
+        trantorian.reset_eject_check()
+        return None
+    if player_count != 2:
+        trantorian.reset_eject_check()
+        return None
+    if trantorian.same_tile_team_count() > 0:
+        trantorian.reset_eject_check()
+        return None
+    if trantorian.eject_check_players != player_count:
+        trantorian.eject_check_players = player_count
+        trantorian.eject_check_rounds = 1
+        trantorian.broadcast_counter = 0
+        return [heartbeat_command(trantorian), "Look"]
+    if trantorian.eject_check_rounds < EJECT_CONFIRM_ROUNDS:
+        trantorian.eject_check_rounds += 1
+        trantorian.broadcast_counter = 0
+        return [heartbeat_command(trantorian), "Look"]
+    return ["Eject"]
+
 def survive_plan(trantorian, tile):
     """Emergency: eat the current tile or rush to the nearest food."""
 
@@ -255,10 +285,15 @@ def build_plan(trantorian):
     tile = trantorian.vision[0]
     if trantorian.update_food_emergency():
         trantorian.state = SURVIVE
+        trantorian.reset_eject_check()
         return survive_plan(trantorian, tile)
     if can_initiate(trantorian, tile):
         trantorian.last_incant_failed = False
+        trantorian.reset_eject_check()
         return ["Incantation"]
+    eject_plan = eject_strategy_plan(trantorian, tile)
+    if eject_plan is not None:
+        return eject_plan
     if should_broadcast(trantorian):
         return [heartbeat_command(trantorian)]
     if should_fork(trantorian):

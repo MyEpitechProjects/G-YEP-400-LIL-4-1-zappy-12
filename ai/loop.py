@@ -23,8 +23,13 @@ def send_command(socket_file, command):
     return True
 
 def handle_async_line(line, trantorian):
-    """Record valid heartbeats from team members."""
+    """Record valid heartbeats and handle asynchronous ejections."""
 
+    if line.startswith("eject:"):
+        trantorian.reset_eject_check()
+        trantorian.vision = []
+        print(f"[async] {line}")
+        return
     if line.startswith("message "):
         broadcast = parse_broadcast(line)
         if broadcast is not None:

@@ -10,7 +10,7 @@ import time
 
 from ai.protocol import parse_inventory, parse_look
 from ai.navigation import step_forward, turn_right, turn_left
-from ai.constants import FORAGE, FOOD_CRITICAL, FOOD_LOW_LIMIT, HEARD_TIMEOUT, POP_MEMORY, KING_STABLE_ROUNDS, KING_STICKY
+from ai.constants import FORAGE, FOOD_CRITICAL, FOOD_LOW_LIMIT, HEARD_TIMEOUT, POP_MEMORY, KING_STABLE_ROUNDS, KING_STICKY, EJECT_ALLY_MAX_AGE
 
 class Trantorian:
 
@@ -42,6 +42,9 @@ class Trantorian:
         self.food_emergency = False
         self.rally_stall = 0
         self.last_fork_tick = -9999
+        self.eject_check_rounds = 0
+        self.eject_check_players = 0
+        self.last_eject_tick = -9999
         self.start_time = time.time()
         self.state = FORAGE
 
@@ -132,6 +135,21 @@ class Trantorian:
             if info[1] == 0 and info[2] == self.level and token < self.token:
                 return False
         return True
+    
+    def reset_eject_check(self):
+        """Reset the current enemy verification process."""
+
+        self.eject_check_rounds = 0
+        self.eject_check_players = 0
+
+    def same_tile_team_count(self):
+        """Count recently confirmed team members on the current tile."""
+
+        count = 0
+        for info in self.heard.values():
+            if info[1] == 0 and self.tick - info[0] <= EJECT_ALLY_MAX_AGE:
+                count += 1
+        return count
 
     def update_level(self, new_level):
         """Update the level after an elevation and clear stale vision."""
@@ -141,6 +159,7 @@ class Trantorian:
         self.level = new_level
         self.last_incant_failed = False
         self.rally_stall = 0
+        self.reset_eject_check()
         self.vision = []
 
     def update_from_response(self, action, response, object_name=None):
@@ -179,16 +198,22 @@ class Trantorian:
         elif action == "Forward":
             if response == "ok":
                 self.x, self.y = step_forward(self.x, self.y, self.orientation, self.map_width, self.map_height)
+            self.reset_eject_check()
             self.vision = []
         elif action == "Right":
             if response == "ok":
                 self.orientation = turn_right(self.orientation)
+            self.reset_eject_check()
             self.vision = []
         elif action == "Left":
             if response == "ok":
                 self.orientation = turn_left(self.orientation)
+            self.reset_eject_check()
             self.vision = []
         elif action == "Eject":
+            if response == "ok":
+                self.last_eject_tick = self.tick
+            self.reset_eject_check()
             self.vision = []
         elif action == "Fork":
             self.available_slots = None
