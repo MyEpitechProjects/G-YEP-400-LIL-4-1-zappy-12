@@ -23,6 +23,9 @@ $(NAME_AI):
 	cp ai/main.py $(NAME_AI)
 	chmod +x $(NAME_AI)
 
+$(NAME_SERVER):
+	$(MAKE) -C server
+
 tests_run:
 	PYTHONPATH=. $(PYTHON) -m coverage run --source=ai -m unittest discover -s $(TESTS_DIR_AI) -p "test_*.py" -v
 
