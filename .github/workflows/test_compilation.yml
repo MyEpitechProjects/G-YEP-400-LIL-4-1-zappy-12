@@ -17,67 +17,37 @@ defaults:
 
 jobs:
 
-  build_server:
-    name: Build zappy_server
+  ci:
+    name: Build, Test & Clean
     runs-on: ubuntu-latest
     container: epitechcontent/epitest-docker:latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Make zappy_server
-        run: make zappy_server
-
-      - name: Check server executable
+      - name: Build zappy_server
         run: |
+          make zappy_server
           if [ ! -x "./zappy_server" ]; then
             echo "::error::zappy_server is missing or not executable"
             exit 1
           fi
 
-  build_ai:
-    name: Build zappy_ai
-    runs-on: ubuntu-latest
-    container: epitechcontent/epitest-docker:latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Make zappy_ai
-        run: make zappy_ai
-
-      - name: Check ai executable
+      - name: Build zappy_ai
         run: |
+          make zappy_ai
           if [ ! -x "./zappy_ai" ]; then
             echo "::error::zappy_ai is missing or not executable"
             exit 1
           fi
 
-  unit_tests:
-    name: Run Unit Tests
-    runs-on: ubuntu-latest
-    container: epitechcontent/epitest-docker:latest
-    needs: [build_server, build_ai]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Make tests_run
+      - name: Run unit tests
         run: make tests_run
 
-  clean_checks:
-    name: Make fclean and Check rules
-    runs-on: ubuntu-latest
-    container: epitechcontent/epitest-docker:latest
-    needs: unit_tests
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Run Makefile rules
+      - name: Make fclean and check rules
         run: |
           make all
-          
+
           make clean
           found=$(find . \( -name "*.o" -o -name "*.gcno" -o -name "*.gcda" -o -name "*~" -o -name "#*#" -o -name "*.tmp" \) -print -quit)
           if [ -n "$found" ]; then
