@@ -1,13 +1,30 @@
 /*
 ** EPITECH PROJECT, 2026
-** G-YEP-400 : server/src/main.c
+** server ftp
 ** File description:
-** main server file
+** none
 */
 
-#include "zappy_server.h"
+#include "myserver.h"
 
-int main(void)
+int main(int argc, char **argv)
 {
-    printf("zappy_server\n");
+    arguments_t arguments;
+    sigset_t mask;
+    int sfd;
+    int argCode = parse_arg(argc, argv, &arguments);
+
+    if (argCode != 0 || !check_args(&arguments, argc, argv))
+        return argCode;
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGINT);
+    sigaddset(&mask, SIGTERM);
+    sigaddset(&mask, SIGQUIT);
+    sigprocmask(SIG_BLOCK, &mask, NULL);
+    sfd = signalfd(-1, &mask, 0);
+    if (sfd == -1)
+        return 84;
+    if (start_server(&arguments, sfd))
+        return 0;
+    return 84;
 }
