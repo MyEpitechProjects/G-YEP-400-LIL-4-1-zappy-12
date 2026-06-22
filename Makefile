@@ -13,16 +13,11 @@ NAME_AI = zappy_ai
 
 CFLAGS = -Wall -Wextra -Werror -I server/include
 
-SRC_SERVER = server/src/main.c
-
-OBJ_SERVER = $(SRC_SERVER:.c=.o)
-
 TESTS_DIR_AI = tests/ai
 
-all: $(NAME_SERVER) $(NAME_AI)
-
-$(NAME_SERVER): $(OBJ_SERVER)
-	$(CC) $(OBJ_SERVER) -o $(NAME_SERVER) $(CFLAGS)
+all:
+	$(MAKE) -C server
+	$(MAKE) $(NAME_AI)
 
 $(NAME_AI):
 	cp ai/main.py $(NAME_AI)
@@ -32,13 +27,14 @@ tests_run:
 	PYTHONPATH=. $(PYTHON) -m coverage run --source=ai -m unittest discover -s $(TESTS_DIR_AI) -p "test_*.py" -v
 
 clean:
-	rm -f $(OBJ_SERVER)
+	$(MAKE) -C server clean
 	rm -f .coverage
 	rm -rf htmlcov
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete
 	
 fclean: clean
-	rm -f $(NAME_SERVER) $(NAME_AI)
+	$(MAKE) -C server fclean
+	rm -f $(NAME_AI)
 
 re: fclean all
