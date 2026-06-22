@@ -12,6 +12,8 @@ import subprocess
 
 from ai.constants import POP_TARGET, POP_WARMUP_SECONDS, FORK_COOLDOWN, FILL_BATCH, FOOD_LOW_LIMIT
 
+
+# Absolute path of the project root. Used as the child's working dir so that "python -m ai.main" can locate and import the package.
 PACKAGE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def child_output(trantorian):
@@ -19,15 +21,18 @@ def child_output(trantorian):
 
     log_dir = os.environ.get("ZAPPY_AI_LOGDIR")
     if not log_dir:
-        return subprocess.DEVNULL
+        return subprocess.DEVNULL  # sentinel telling Popen to send output to /dev/null
+    # Build a unique filename: team + our PID + a millisecond stamp.
     path = os.path.join(log_dir, f"child_{trantorian.team_name}_{os.getpid()}_{int(time.time()*1000)%100000}.log")
     return open(path, "w")
 
 def spawn_child(trantorian):
     """Launch one new client process to occupy a free team slot."""
 
+    # Re launch this program
     command = [sys.executable, "-m", "ai.main", "-p", str(trantorian.port), "-n", trantorian.team_name, "-h", trantorian.machine]
     output = child_output(trantorian)
+    # Start the process
     subprocess.Popen(command, cwd=PACKAGE_ROOT, stdout=output, stderr=subprocess.STDOUT)
 
 def spawn_children(trantorian, count):
@@ -48,6 +53,7 @@ def should_fork(trantorian):
         return False
     if trantorian.population_estimate() >= POP_TARGET:
         return False
+    # Rate limit forks : tick -> action counter -> cooldown in action
     if trantorian.tick - trantorian.last_fork_tick < FORK_COOLDOWN:
         return False
     if trantorian.inventory.get("food", 0) < FOOD_LOW_LIMIT:
@@ -61,7 +67,7 @@ def fill_count(trantorian):
         return 0
     if trantorian.population_estimate() >= POP_TARGET:
         return 0
-    slots = trantorian.available_slots
-    if slots is None or slots <= 0:
+    slots = trantorian.available_slots  
+    if slots is None or slots <= 0: # None = a fork is in flight
         return 0
-    return min(slots, FILL_BATCH)
+    return min(slots, FILL_BATCH) # never spawn more than FILL_BATCH per round

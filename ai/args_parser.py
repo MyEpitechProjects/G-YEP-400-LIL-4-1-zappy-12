@@ -12,7 +12,7 @@ def parse_arguments(arguments: list) -> tuple[int, str, str]:
 
     port = 0
     name = ""
-    machine = "localhost"
+    machine = "localhost" # default machine when not precised
 
     if len(arguments) == 1:
         print("USAGE: ./zappy_ai -p port -n name -h machine", file=sys.stderr)

@@ -11,7 +11,7 @@ def has_required_stones_in_inventory(level, inventory):
     """Check if inventory contains enough stones to trigger a gather (pooling)."""
 
     level_to_reach = level + 1
-    if level_to_reach not in REQUIREMENTS:
+    if level_to_reach not in REQUIREMENTS: # already at level 8
         return False
     requirements = REQUIREMENTS[level_to_reach]
     missing = 0
@@ -67,7 +67,7 @@ def can_start_incantation(level, inventory, vision):
     current_tile = vision[0]
     if current_tile.get("player", 0) < requirements.get("players", 0):
         return False
-    for stone in STONES:
+    for stone in STONES: # every required stone must physically be on the tile
         if current_tile.get(stone, 0) < requirements.get(stone, 0):
             return False
     return True

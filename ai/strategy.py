@@ -13,7 +13,7 @@ from ai.navigation import distance_from_tile_index, build_move_plan, moves_towar
 def next_requirement(level):
     """Return the requirement dict for the next elevation, or None at the top."""
 
-    return REQUIREMENTS.get(level + 1)
+    return REQUIREMENTS.get(level + 1) # .get -> None at level 8 (no level 9)
 
 def find_best_tile(vision, inventory, level):
     """Score visible tiles for foraging the food and stones we still need."""
@@ -23,7 +23,7 @@ def find_best_tile(vision, inventory, level):
     requirements = REQUIREMENTS.get(level + 1, {})
     food = inventory.get("food", 0)
     best_tile_index = 0
-    best_score = -999999
+    best_score = -999999 # sentinel below any real score
     for tile_index, tile in enumerate(vision):
         score = 0
         distance = distance_from_tile_index(tile_index)
@@ -33,9 +33,9 @@ def find_best_tile(vision, inventory, level):
             score += tile.get("food", 0) * NORMAL_FOOD_PRIORITY
         for stone in STONES:
             missing = requirements.get(stone, 0) - inventory.get(stone, 0)
-            if missing > 0:
+            if missing > 0:  # Only credit stones needs , and only as many as we lack.
                 score += min(tile.get(stone, 0), missing) * STONE_PRIORITY
-        score -= distance * DISTANCE_PENALTY
+        score -= distance * DISTANCE_PENALTY # farther tiles cost time -> penalise
         if tile_index == 0:
             score += CURRENT_TILE_BONUS
         if score > best_score:
@@ -46,7 +46,7 @@ def find_best_tile(vision, inventory, level):
 def find_best_food_tile(vision):
     """Find the best visible tile containing food."""
 
-    best_tile_index = None
+    best_tile_index = None # None -> no food anywhere in sight
     best_score = None
     for tile_index, tile in enumerate(vision):
         food_amount = tile.get("food", 0)
@@ -66,7 +66,7 @@ def explore_plan(trantorian):
 
     x, y, orientation = trantorian.x, trantorian.y, trantorian.orientation
     width, height = trantorian.map_width, trantorian.map_height
-    trantorian.visited[(x, y)] = trantorian.visited.get((x, y), 0) + 1
+    trantorian.visited[(x, y)] = trantorian.visited.get((x, y), 0) + 1 # mark current tile
     best_orientation = orientation
     best_score = None
     for target_orientation in range(4):
@@ -126,12 +126,13 @@ def can_initiate(trantorian, tile):
         if tile.get(stone, 0) < requirements.get(stone, 0):
             return False
     needed_players = requirements.get("players", 1)
+    # present = ourselves + same-level teammates whose beacon comes from this tile.
     present = 1 + trantorian.same_tile_same_level_count()
-    if present < needed_players:
+    if present < needed_players:  # the Look must also confirm the bodies
         return False
     if tile.get("player", 0) < needed_players:
         return False
-    return trantorian.is_min_token_on_tile()
+    return trantorian.is_min_token_on_tile() # only one initiator: the lowest token
 
 def heartbeat_command(trantorian):
     """Build the periodic coordination broadcast command."""
@@ -154,31 +155,31 @@ def eject_strategy_plan(trantorian, tile):
     """Confirm that the only other player is not a team member before ejecting."""
 
     player_count = tile.get("player", 0)
-    if trantorian.level <= 1:
+    if trantorian.level <= 1: # nothing to protect yet
         trantorian.reset_eject_check()
         return None
-    if trantorian.is_king or trantorian.king_direction == 0:
+    if trantorian.is_king or trantorian.king_direction == 0: # never eject on the king tile
         trantorian.reset_eject_check()
         return None
-    if trantorian.tick - trantorian.last_eject_tick < EJECT_COOLDOWN:
+    if trantorian.tick - trantorian.last_eject_tick < EJECT_COOLDOWN: # rate-limit
         trantorian.reset_eject_check()
         return None
-    if player_count != 2:
+    if player_count != 2: # only the "1 stranger" case
         trantorian.reset_eject_check()
         return None
-    if trantorian.same_tile_team_count() > 0:
+    if trantorian.same_tile_team_count() > 0: # the other one is an ally
         trantorian.reset_eject_check()
         return None
-    if trantorian.eject_check_players != player_count:
+    if trantorian.eject_check_players != player_count:  # 1st sighting: start counting
         trantorian.eject_check_players = player_count
         trantorian.eject_check_rounds = 1
         trantorian.broadcast_counter = 0
         return [heartbeat_command(trantorian), "Look"]
-    if trantorian.eject_check_rounds < EJECT_CONFIRM_ROUNDS:
+    if trantorian.eject_check_rounds < EJECT_CONFIRM_ROUNDS:  # keep confirming
         trantorian.eject_check_rounds += 1
         trantorian.broadcast_counter = 0
         return [heartbeat_command(trantorian), "Look"]
-    return ["Eject"]
+    return ["Eject"] # confirmed stranger -> push
 
 def survive_plan(trantorian, tile):
     """Emergency: eat the current tile or rush to the nearest food."""
@@ -188,7 +189,7 @@ def survive_plan(trantorian, tile):
     best_tile = find_best_food_tile(trantorian.vision)
     if best_tile is not None and best_tile != 0:
         return build_move_plan(best_tile) + ["Look"]
-    return explore_plan(trantorian)
+    return explore_plan(trantorian) # no food in sight: go look elsewhere
 
 def solo_plan(trantorian, tile):
     """Level 1->2 needs nobody else: stand on a linemate and elevate."""
@@ -216,7 +217,7 @@ def rally_plan(trantorian, tile):
             return build_move_plan(best_food) + ["Look"]
     drop = drop_stone_plan(trantorian, tile)
     if drop is not None:
-        trantorian.rally_stall = 0
+        trantorian.rally_stall = 0 # progress made: reset the stall counter
         return drop
     if food > FOOD_RALLY_HIGH:
         return ["Set food"]
@@ -230,12 +231,13 @@ def rally_plan(trantorian, tile):
             return explore_plan(trantorian)
     else:
         trantorian.rally_stall = 0
-    return ["Look"]
+    return ["Look"] # default : hold position and keep the tile under observation
 
 def king_plan(trantorian, tile):
     """King is a strictly stationary beacon: hold the anchor, eat the depot, seed stones."""
 
     trantorian.state = KING
+    # If pushed off the anchor walk one step back toward it.
     if trantorian.has_anchor and (trantorian.x != trantorian.anchor_x or trantorian.y != trantorian.anchor_y):
         moves = navigate_to(trantorian.x, trantorian.y, trantorian.orientation, trantorian.anchor_x, trantorian.anchor_y, trantorian.map_width, trantorian.map_height)
         if moves:
@@ -251,19 +253,19 @@ def worker_plan(trantorian, tile):
     """Converge onto the king while foraging, then rally on its tile."""
 
     direction = trantorian.king_direction
-    if direction is None:
+    if direction is None: # No king located yet
         takes = forage_takes(trantorian, tile)
         if takes:
             return takes + ["Look"]
         trantorian.state = FORAGE
         return explore_plan(trantorian)
-    if direction != 0:
+    if direction != 0: # king is elsewhrere
         takes = forage_takes(trantorian, tile)
         if takes:
             return takes + ["Look"]
         trantorian.state = CONVERGE
         return moves_toward_sound(direction) + ["Look"]
-    return rally_plan(trantorian, tile)
+    return rally_plan(trantorian, tile) # direction 0 -> King tile
 
 def idle_plan(trantorian, tile):
     """Top-level agent: survive and keep broadcasting (beacon if king)."""
@@ -297,14 +299,14 @@ def build_plan(trantorian):
     if should_broadcast(trantorian):
         return [heartbeat_command(trantorian)]
     if should_fork(trantorian):
-        trantorian.last_fork_tick = trantorian.tick
+        trantorian.last_fork_tick = trantorian.tick # arm the fork cooldown
         return ["Fork"]
     requirements = next_requirement(trantorian.level)
-    if requirements is None:
+    if requirements is None: # already at the max level
         return idle_plan(trantorian, tile)
-    if requirements.get("players", 1) <= 1:
+    if requirements.get("players", 1) <= 1: # 1->2 is solo : no coordination
         trantorian.state = SOLO
         return solo_plan(trantorian, tile)
-    if trantorian.is_king:
+    if trantorian.is_king: # group level : king anchors, worker converges
         return king_plan(trantorian, tile)
     return worker_plan(trantorian, tile)

@@ -23,34 +23,43 @@ class Trantorian:
         self.inventory = {"food": 10, "linemate": 0, "deraumere": 0, "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0}
         self.available_slots = initial_slots
         self.pending_commands = 0
+        # Random tie-breaker that identifies this agent in broadcasts. Big range makes collisions between teammates extremely unlikely
+        # the lowest/highest token is used to pick a single anchor/king deterministically
         self.token = random.randint(1, 999999999)
+        # heard[token] = [tick, direction, level, king_flag, state, sequence]
+        # tick : local tick when last heard 
+        # direction : sound tile 0..8 the beacon came from
+        # seen[token] = last tick a token was heard at all 
         self.heard = {}
         self.seen = {}
-        self.tick = 0
+        self.tick = 0 # local action counter : notion of time for cooldowns
         self.is_king = False
-        self.king_stable = 0
-        self.king_direction = None
+        self.king_stable = 0 # consecutive rounds -> held the crown
+        self.king_direction = None  # sound direction toward the king (0 = here)
         self.has_anchor = False
         self.anchor_x = 0
         self.anchor_y = 0
         self.broadcast_counter = 0
+        # Dead-reckoned position/orientation relative to spawn.
         self.x = 0
         self.y = 0
         self.orientation = 0
-        self.visited = {}
+        self.visited = {}  # (x, y) -> visit count, drives exploration
         self.last_incant_failed = False
         self.food_emergency = False
         self.rally_stall = 0
-        self.last_fork_tick = -9999
+        self.last_fork_tick = -9999 # far in the past => no cooldown at startup
         self.eject_check_rounds = 0
         self.eject_check_players = 0
         self.last_eject_tick = -9999
-        self.start_time = time.time()
+        self.start_time = time.time()  # absolute time, for the reproduction warmup
         self.state = FORAGE
 
     def update_food_emergency(self):
         """Update food emergency mode using hysteresis thresholds."""
 
+        # Hysteresis: enter panic at <= FOOD_CRITICAL, only leave once back >= FOOD_LOW_LIMIT.
+        # Two different thresholds prevent flapping in/out of SURVIVE near the boundary.
         food = self.inventory.get("food", 0)
         if self.food_emergency:
             if food >= FOOD_LOW_LIMIT:
@@ -65,6 +74,7 @@ class Trantorian:
         if token == self.token:
             return
         previous = self.heard.get(token)
+        # sequence is the sender's own tick: keep only strictly newer messages (older/duplicate beacons arriving late are dropped)
         if previous is not None and sequence <= previous[5]:
             return
         self.heard[token] = [self.tick, direction, level, king_flag, state, sequence]
@@ -73,6 +83,7 @@ class Trantorian:
     def prune_heard(self):
         """Forget stale per-tile heartbeats and stale population sightings."""
 
+        # Build the kill-lists first, then delete: never mutate a dict while iterating it.
         stale = [token for token, info in self.heard.items() if self.tick - info[0] > HEARD_TIMEOUT]
         for token in stale:
             del self.heard[token]
@@ -88,18 +99,18 @@ class Trantorian:
         best_direction = None
         best_is_self = True
         for token, info in self.heard.items():
-            priority = token + (KING_STICKY if info[3] else 0)
+            priority = token + (KING_STICKY if info[3] else 0)  # info[3] = their king_flag
             if priority > best_priority:
                 best_priority = priority
-                best_direction = info[1]
+                best_direction = info[1] # info[1] = direction toward that king
                 best_is_self = False
         if best_is_self:
             if not self.is_king:
-                self.king_stable = 0
+                self.king_stable = 0  # just won the crown : reset the counter
             self.is_king = True
             self.king_stable += 1
-            self.king_direction = 0
-            if not self.has_anchor:
+            self.king_direction = 0 # the king is "here" from its own point of view
+            if not self.has_anchor:  # pin the rally point once, where standed
                 self.anchor_x = self.x
                 self.anchor_y = self.y
                 self.has_anchor = True
@@ -145,6 +156,7 @@ class Trantorian:
     def same_tile_team_count(self):
         """Count recently confirmed team members on the current tile."""
 
+        # Stricter than same_tile_* : only beacons fresh within EJECT_ALLY_MAX_AGE count -> never eject someone who just proved they are an ally.
         count = 0
         for info in self.heard.values():
             if info[1] == 0 and self.tick - info[0] <= EJECT_ALLY_MAX_AGE:
@@ -154,13 +166,13 @@ class Trantorian:
     def update_level(self, new_level):
         """Update the level after an elevation and clear stale vision."""
 
-        if new_level == self.level:
+        if new_level == self.level:  # avoid clear vision for nothing
             return
-        self.level = new_level
+        self.level = new_level 
         self.last_incant_failed = False
         self.rally_stall = 0
         self.reset_eject_check()
-        self.vision = []
+        self.vision = [] # vision is level-sized -> it is invalid after elevating
 
     def update_from_response(self, action, response, object_name=None):
         """Integrate the last server response into the agent's own state."""
@@ -199,7 +211,7 @@ class Trantorian:
             if response == "ok":
                 self.x, self.y = step_forward(self.x, self.y, self.orientation, self.map_width, self.map_height)
             self.reset_eject_check()
-            self.vision = []
+            self.vision = []  # any move invalidates the last Look
         elif action == "Right":
             if response == "ok":
                 self.orientation = turn_right(self.orientation)
@@ -212,9 +224,9 @@ class Trantorian:
             self.vision = []
         elif action == "Eject":
             if response == "ok":
-                self.last_eject_tick = self.tick
+                self.last_eject_tick = self.tick # start the eject cooldown
             self.reset_eject_check()
             self.vision = []
         elif action == "Fork":
-            self.available_slots = None
+            self.available_slots = None # unknown until the next Connect_nbr reply
         return True

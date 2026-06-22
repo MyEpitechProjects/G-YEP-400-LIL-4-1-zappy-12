@@ -47,6 +47,7 @@ def first_connection(port: int, name: str, machine: str):
 
         return client_socket, socket_file, dimensions, int(client_num)
 
+    # Error management
     except Exception as e:
         print(f"An error occurred: {e}", file=sys.stderr)
         sys.exit(84)

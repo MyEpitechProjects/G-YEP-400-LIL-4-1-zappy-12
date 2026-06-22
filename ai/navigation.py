@@ -11,6 +11,7 @@ FORWARD_DELTA = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 def distance_from_tile_index(tile_index):
     """Estimate distance between player and a visible tile index."""
 
+    # Vision is a triangle of rows; row r spans indices r^2 .. (r+1)^2 - 1.
     distance = 0
     while (distance + 1) * (distance + 1) <= tile_index:
         distance += 1
@@ -22,13 +23,14 @@ def build_move_plan(tile_index):
     plan = []
     if tile_index == 0:
         return plan
-    row = distance_from_tile_index(tile_index)
+    row = distance_from_tile_index(tile_index)  # how many tiles forward
     row_start = row * row
     row_center = row_start + row
-    offset = tile_index - row_center
+    offset = tile_index - row_center  # <0 = to the left, >0 = to the right
     if offset < 0:
+         # Step left, walk |offset| tiles sideways, face forward again.
         plan.append("Left")
-        for _ in range(abs(offset)):
+        for _ in range(abs(offset)): 
             plan.append("Forward")
         plan.append("Right")
     elif offset > 0:
@@ -36,7 +38,7 @@ def build_move_plan(tile_index):
         for _ in range(offset):
             plan.append("Forward")
         plan.append("Left")
-    for _ in range(row):
+    for _ in range(row): # then advance the 'row' tiles forward
         plan.append("Forward")
     return plan
 
@@ -67,6 +69,7 @@ def step_forward(x, y, orientation, width, height):
     """Advance one tile in the facing direction, wrapping on the toroidal map."""
 
     dx, dy = FORWARD_DELTA[orientation]
+    # The map is a donut : % width/height wraps an edge exit back to the far side.
     return (x + dx) % width, (y + dy) % height
 
 def turns_to_face(current, target):
@@ -78,18 +81,21 @@ def turns_to_face(current, target):
     if diff == 1:
         return ["Right"]
     if diff == 2:
-        return ["Right", "Right"]
+        return ["Right", "Right"] # half turn
     return ["Left"]
 
 def navigate_to(x, y, orientation, target_x, target_y, width, height):
     """One step along the toroidal shortest path toward a target tile."""
 
+    # Forward wrap distances: dx going East, (width - dx) going West (same for y).
     dx = (target_x - x) % width
     dy = (target_y - y) % height
     if dx != 0:
+        # Pick the cheaper horizontal way around the torus: East(1) vs West(3).
         target_orientation = 1 if dx <= width - dx else 3
         return turns_to_face(orientation, target_orientation) + ["Forward"]
     if dy != 0:
+        # Same idea vertically: South(2) vs North(0).
         target_orientation = 2 if dy <= height - dy else 0
         return turns_to_face(orientation, target_orientation) + ["Forward"]
     return []
