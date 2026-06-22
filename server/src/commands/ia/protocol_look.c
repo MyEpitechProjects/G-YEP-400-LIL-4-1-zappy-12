@@ -97,7 +97,7 @@ static char *look_tile(connection_t *_server, look_args_t *args, char *result)
     args->first_tile = false;
     tile_str = tile_to_string(_server, (uint64_t)txy.dx, (uint64_t)txy.dy);
     result = string_append(result, tile_str, false);
-    free(tile_str);
+    myfree(tile_str);
     return result;
 }
 

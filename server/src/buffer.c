@@ -126,7 +126,7 @@ bool execute_buffer(connection_t *_server, uint32_t *i, bool ret)
     char **command_build = NULL;
 
     if (ret == false || !_server->_fdsm[*i].buffer)
-        return false;
+        return ret;
     command = get_buffer(_server->_fdsm[*i].buffer);
     if (!command)
         return true;

@@ -5,7 +5,7 @@
 ## zorglub
 ##
 
-NAME = zappy_server
+NAME = ../zappy_server
 
 SRC =	src/server_push.c								\
 		src/buffer.c									\
@@ -96,7 +96,7 @@ LDFLAGS = -luuid
 all: $(NAME)
 
 $(NAME): $(OBJ)
-	$(CC) -o $(NAME) $(OBJ) $(LDFLAGS)
+	$(CC) -o $(NAME) $(OBJ) $(LDFLAGS) -s
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

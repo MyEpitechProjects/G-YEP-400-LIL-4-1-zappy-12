@@ -22,14 +22,12 @@ static void *free_fds(connection_t *_server)
     for (uint32_t i = 0; i < _server->nfds; i++){
         close(_server->_fds[i].fd);
     }
-    free(_server->_fds);
-    return NULL;
+    return myfree(_server->_fds);
 }
 
 static void *free_fdsm(connection_t *_server)
 {
-    free(_server->_fdsm);
-    return NULL;
+    return myfree(_server->_fdsm);
 }
 
 static void *free_socket(connection_t *_server)
@@ -39,23 +37,22 @@ static void *free_socket(connection_t *_server)
     for (uint32_t i = 0; i < _server->nsock; i++){
         close(_server->_sockets[i]._fd);
     }
-    free(_server->_sockets);
-    return NULL;
+    return myfree(_server->_sockets);
 }
 
 void destroy_clock(myclock_t *_clock)
 {
     if (!_clock)
         return;
-    free(_clock);
+    myfree(_clock);
 }
 
 bool free_array(void **arr)
 {
     for (uint64_t i = 0; arr[i] != NULL; i++){
-        free(arr[i]);
+        myfree(arr[i]);
     }
-    free(arr);
+    myfree(arr);
     return true;
 }
 
