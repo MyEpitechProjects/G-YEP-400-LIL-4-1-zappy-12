@@ -99,4 +99,4 @@ Profitez du spectacle.
 
 Quand une équipe a gagné ou que tous les Trantorians sont morts, le serveur se ferme et vous pouvez fermer vos terminaux.
 
-[Retour à la documentation principale](../README.md)
+[Retour à la documentation principale](https://github.com/EpitechPGE2-2025/G-YEP-400-LIL-4-1-zappy-12/tree/main)

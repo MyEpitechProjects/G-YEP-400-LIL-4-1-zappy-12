@@ -18,5 +18,6 @@ Exécutez la commande suivante :
 cd G-YEP-400-LIL-4-1-zappy-12
 ```
  
-Vous pouvez maintenant retourner à la [documentation principale](../README.md).
+Vous pouvez maintenant retourner à la [documentation principale](https://github.com/EpitechPGE2-2025/G-YEP-400-LIL-4-1-zappy-12/tree/main).
+
 Ou passer à la [documentation de lancement](lancement.md)
