@@ -19,9 +19,12 @@ Le projet Zappy consiste à réaliser un jeu, avec 3 parties :
 ## Documentation technique de l'IA
 [Consultez la documentation de l'IA](docs/ai/ai_doc_main.md).
 
-Ce projet à été réalisé à EPITECH, dans un but académique, tous les droits réservés
+## Documentation sur les tests unitaires
+[Consultez la documentation sur les tests unitaires](docs/unittest.md).
 
-## Autheurs
+Ce projet a été réalisé à EPITECH, dans un but académique, tous les droits réservés.
+
+## Auteurs
 * Célestin Bailly (celestin.bailly@epitech.eu)
 * Paul Dunas (paul.dunas@epitech.eu)
 * Ethan Saintot (ethan.saintot@epitech.eu)
