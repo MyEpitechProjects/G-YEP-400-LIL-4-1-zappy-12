@@ -100,4 +100,3 @@ Profitez du spectacle.
 Quand une équipe a gagné ou que tous les Trantorians sont morts, le serveur se ferme et vous pouvez fermer vos terminaux.
 
 [Retour à la documentation principale](../README.md)
-

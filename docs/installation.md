@@ -19,3 +19,4 @@ cd G-YEP-400-LIL-4-1-zappy-12
 ```
  
 Vous pouvez maintenant retourner à la [documentation principale](../README.md).
+Ou passer à la [documentation de lancement](lancement.md)
