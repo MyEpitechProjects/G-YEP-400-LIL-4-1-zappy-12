@@ -9,9 +9,10 @@ import sys
 
 def parse_arguments(arguments: list) -> tuple[int, str, str]:
     """Parse arguments and return (port, name, machine) or exit if invalid."""
+
     port = 0
     name = ""
-    machine = "localhost"
+    machine = "localhost" # default machine when not precised
 
     if len(arguments) == 1:
         print("USAGE: ./zappy_ai -p port -n name -h machine", file=sys.stderr)
@@ -35,9 +36,7 @@ def parse_arguments(arguments: list) -> tuple[int, str, str]:
     else:
         print("USAGE: ./zappy_ai -p port -n name -h machine", file=sys.stderr)
         sys.exit(84)
-
     if name == "GRAPHIC":
         print("Error: 'GRAPHIC' is a reserved team name for the GUI. Try with another name.", file=sys.stderr)
         sys.exit(84)
-
     return port, name, machine
