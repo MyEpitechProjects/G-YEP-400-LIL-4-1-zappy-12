@@ -22,6 +22,9 @@ Le projet Zappy consiste à réaliser un jeu, avec 3 parties :
 ## Documentation sur les tests unitaires
 [Consultez la documentation sur les tests unitaires](docs/unittest.md).
 
+## Documentation sur la CI
+[Consultez la documentation sur la partie CI](docs/ci.md)
+
 Ce projet a été réalisé à EPITECH, dans un but académique, tous les droits réservés.
 
 ## Auteurs
