@@ -7,14 +7,6 @@
 
 #include "myserver.h"
 
-void gen_uuid(char *dest)
-{
-    uuid_t u;
-
-    uuid_generate_random(u);
-    uuid_unparse(u, dest);
-}
-
 char *send_string(int fd, char *resp)
 {
     ssize_t rs = 0;

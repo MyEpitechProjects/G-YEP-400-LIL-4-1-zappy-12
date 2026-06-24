@@ -42,7 +42,7 @@ typedef struct arguments {
     uint64_t team_number;
     char **teams_names;
     uint64_t client_number;
-    uint8_t freq;
+    uint64_t freq;
 } arguments_t;
 
 typedef struct connection {
@@ -85,6 +85,7 @@ bool handle_request(connection_t *_server, uint32_t i,
 char **str_to_word_array(const char *str);
 
 void *myfree(void *ptr);
+void my_close(int fd);
 
 bool complete_buffer(connection_t *_server, uint32_t *i);
 
@@ -98,10 +99,6 @@ bool push_socket(connection_t *_server, uint32_t port,
 int parse_arg(int argc, char **argv, arguments_t *args);
 
 bool requese_handler(connection_t *_server, uint32_t *i, bool ret);
-
-void get_sock_port(socket_t *_socket);
-
-void gen_uuid(char *dest);
 
 bool start_server(arguments_t *arguments, int sdf);
 

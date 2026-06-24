@@ -6,6 +6,7 @@
 */
 
 #include "myserver.h"
+#include "sys.h"
 
 char *string_create(const char *base)
 {
@@ -31,25 +32,29 @@ char *string_append(char *string, const char *append, bool spaced)
         bak = myfree(bak);
         return NULL;
     }
-    strcat(string, append);
+    my_strcat(string, append);
     if (spaced)
-        strcat(string, " ");
+        my_strcat(string, " ");
     return string;
 }
 
 char *string_append_int(char *string, const int64_t value, bool spaced)
 {
     char str[20];
+    int ret = snprintf(str, sizeof(str), "%ld", value);
 
-    snprintf(str, sizeof(str), "%ld", value);
+    if (ret < 0 || ret >= (int)sizeof(str))
+        return NULL;
     return string_append(string, str, spaced);
 }
 
 char *string_append_uint(char *string, const uint64_t value, bool spaced)
 {
     char str[20];
+    int ret = snprintf(str, sizeof(str), "%lu", value);
 
-    snprintf(str, sizeof(str), "%lu", value);
+    if (ret < 0 || ret >= (int)sizeof(str))
+        return NULL;
     return string_append(string, str, spaced);
 }
 

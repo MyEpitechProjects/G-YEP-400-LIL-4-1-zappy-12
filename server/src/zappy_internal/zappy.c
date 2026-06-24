@@ -91,3 +91,13 @@ uint64_t tile_pos_to_index(connection_t *_server, uint64_t x, uint64_t y)
 {
     return ((y * _server->arguments->width) + x);
 }
+
+uint64_t derive_food_number(connection_t *_server, uint64_t density)
+{
+    uint64_t v = (_server->arguments->width *
+        _server->arguments->height * density) / 100;
+
+    if (v == 0)
+        return 1;
+    return v;
+}

@@ -96,7 +96,7 @@ LDFLAGS = -luuid
 all: $(NAME)
 
 $(NAME): $(OBJ)
-	$(CC) -o $(NAME) $(OBJ) $(LDFLAGS) -s
+	$(CC) -o $(NAME) $(OBJ) $(LDFLAGS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

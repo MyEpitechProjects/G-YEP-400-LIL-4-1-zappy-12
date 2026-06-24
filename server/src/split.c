@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "sys.h"
 
 unsigned int list_len(char **argv)
 {
@@ -85,7 +86,7 @@ static char **empty(void)
         return NULL;
     array[0] = malloc(2);
     if (array[0])
-        strcpy(array[0], " ");
+        my_strcpy(array[0], " ");
     array[1] = NULL;
     return array;
 }

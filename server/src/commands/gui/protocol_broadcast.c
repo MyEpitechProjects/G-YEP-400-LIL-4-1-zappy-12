@@ -16,9 +16,7 @@ bool intern_protocol_graphics_broadcast(connection_t *_server, uint32_t i,
 
     string = string_append(string, "#", false);
     string = string_append_uint(string, sender->index, true);
-    string = string_append(string, "\"", false);
     string = string_append(string, msg, false);
-    string = string_append(string, "\"", true);
     string = send_string(_server->_fds[i].fd, string);
     return true;
 }

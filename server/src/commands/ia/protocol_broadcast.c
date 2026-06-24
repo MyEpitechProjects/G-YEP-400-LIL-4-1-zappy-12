@@ -40,19 +40,19 @@ static uint64_t get_broadcast_mapping(int64_t local_x, int64_t local_y)
 {
     if (local_y > 0 && local_x == 0)
         return 1;
-    if (local_y > 0 && local_x > 0)
+    if (local_y > 0 && local_x < 0)
         return 2;
-    if (local_y == 0 && local_x > 0)
+    if (local_y == 0 && local_x < 0)
         return 3;
-    if (local_y < 0 && local_x > 0)
+    if (local_y < 0 && local_x < 0)
         return 4;
     if (local_y < 0 && local_x == 0)
         return 5;
-    if (local_y < 0 && local_x < 0)
+    if (local_y < 0 && local_x > 0)
         return 6;
-    if (local_y == 0 && local_x < 0)
+    if (local_y == 0 && local_x > 0)
         return 7;
-    if (local_y > 0 && local_x < 0)
+    if (local_y > 0 && local_x > 0)
         return 8;
     return 0;
 }

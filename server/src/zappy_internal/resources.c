@@ -10,16 +10,6 @@
 #include "zappy/zappy_internal.h"
 #include "sys.h"
 
-static uint64_t derive_food_number(connection_t *_server, uint64_t density)
-{
-    uint64_t v = (_server->arguments->width *
-        _server->arguments->height * density) / 100;
-
-    if (v == 0)
-        return 1;
-    return v;
-}
-
 static void add_resource_to_tile(tile_t *tile, resource_type_t type)
 {
     switch (type) {
@@ -114,38 +104,14 @@ static inventory_t *food_soustraction(inventory_t *inv, inventory_t *inv2)
     return inv;
 }
 
-static inventory_t *food_percent(inventory_t *inv, inventory_t *inv2)
-{
-    uint64_t x = FOOD_PERCENTAGE;
-
-    if (inv->food > 0)
-        inv->food = min(max(inv2->food / x, 1), inv->food);
-    if (inv->deraumere > 0)
-        inv->deraumere = min(max(inv2->deraumere / x, 1), inv->deraumere);
-    if (inv->linemate > 0)
-        inv->linemate = min(max(inv2->linemate / x, 1), inv->linemate);
-    if (inv->mendiane > 0)
-        inv->mendiane = min(max(inv2->mendiane / x, 1), inv->mendiane);
-    if (inv->phiras > 0)
-        inv->phiras = min(max(inv2->phiras / x, 1), inv->phiras);
-    if (inv->sibur > 0)
-        inv->sibur = min(max(inv2->sibur / x, 1), inv->sibur);
-    if (inv->thystame > 0)
-        inv->thystame = min(max(inv2->thystame / x, 1), inv->thystame);
-    return inv;
-}
-
 bool add_food_tile(connection_t *_server, zappy_t *zappy)
 {
     inventory_t inv = {0};
     inventory_t inv2 = {0};
-    inventory_t inv3 = {0};
 
     get_density_inv(_server, zappy, &inv);
-    get_density_inv(_server, zappy, &inv3);
     get_tile_food(_server, zappy, &inv2);
     food_soustraction(&inv, &inv2);
-    food_percent(&inv, &inv3);
     dispatch_inventory(_server, zappy, &inv);
     return true;
 }

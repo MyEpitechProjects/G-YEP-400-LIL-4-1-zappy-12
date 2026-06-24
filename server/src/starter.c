@@ -9,17 +9,6 @@
 #include "zappy/zappy_internal.h"
 #include "sys.h"
 
-void get_sock_port(socket_t *_socket)
-{
-    int port = 0;
-
-    getsockname(_socket->_fd,
-        (struct sockaddr *)&_socket->_address, &_socket->_addrlen);
-    port = ntohs(_socket->_address.sin_port);
-    _socket->_port._p1 = port / 256;
-    _socket->_port._p2 = port % 256;
-}
-
 static bool is_buffer_empty(connection_t *_server)
 {
     uint64_t buffer_size = 0;
@@ -52,7 +41,6 @@ static bool check_eat(connection_t *_server, uint32_t *i)
     if (me->inventory.food == 0){
         me->dead = true;
         protocol_ia_death(_server, *i, NULL);
-        trigger_graphic_player_death(_server, me);
         return client_disconnect(_server, i);
     }
     me->inventory.food--;
@@ -66,6 +54,8 @@ static bool execute_client(connection_t *_server, uint32_t *i, bool ret)
     bool end = false;
     player_t *player = NULL;
 
+    if (!ret)
+        return ret;
     if (_server->_fdsm[*i].client_type == CLIENT_IA){
         player = get_player_by_id(_server, _server->_fdsm[*i].id);
         down = check_eat(_server, i);
@@ -94,7 +84,8 @@ static bool run_server(connection_t *_server)
         if (!is_buffer_empty(_server))
             timedout = 0;
         spawn_food(_server, &_server->zappy);
-        poll(_server->_fds, _server->nfds, timedout);
+        if (poll(_server->_fds, _server->nfds, timedout) < 0)
+            continue;
         for (uint32_t i = 0; i < _server->nfds;){
             ret = execute_client(_server, &i, ret);
             i++;
@@ -128,6 +119,6 @@ bool start_server(arguments_t *arguments, int sdf)
     }
     push_poller(&_server, sdf, NULL, FD_QUIT);
     runCode = run_server(&_server);
-    close(_server._sockets[0]._fd);
+    my_close(_server._sockets[0]._fd);
     return free_server(&_server, runCode);
 }

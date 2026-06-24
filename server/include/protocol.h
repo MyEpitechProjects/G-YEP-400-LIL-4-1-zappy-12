@@ -86,16 +86,10 @@ typedef enum client_type_t {
     CLIENT_IA,
 } client_type_t;
 
-typedef struct port {
-    int _p1;
-    int _p2;
-} port_t;
-
 typedef struct socket {
     int _fd;
     struct sockaddr_in _address;
     socklen_t _addrlen;
-    port_t _port;
 } socket_t;
 
 #endif

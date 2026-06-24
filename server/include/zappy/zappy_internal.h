@@ -120,6 +120,7 @@ incantation_t *get_last_incantation(connection_t *_server);
 uint64_t get_available_eggs(connection_t *_server, char *team);
 uint64_t **set_resources_array(uint64_t **src, inventory_t *inv);
 
+uint64_t derive_food_number(connection_t *_server, uint64_t density);
 
 uint64_t extract_num(char *ptr, char **endptr, int base, bool ok);
 void *list_push(void *original, uint64_t *size, uint64_t itemSize,
@@ -259,6 +260,6 @@ bool trigger_graphic_player_level(connection_t *_server,
 bool protocol_ko(connection_t *_server, uint32_t i, char **command);
 bool protocol_ok(connection_t *_server, uint32_t i, char **command);
 
-bool free_zappy(connection_t *_server, zappy_t *zappy);
+void *free_zappy(zappy_t *zappy);
 
 #endif

@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "sys.h"
 
 static uint64_t get_buffer_lines(char *input)
 {
@@ -31,7 +32,7 @@ static bool new_buffer(connection_t *_server, uint32_t i, char *req)
     _server->_fdsm[i].buffer = calloc(strlen(req) + 1, sizeof(char));
     if (!_server->_fdsm[i].buffer)
         return false;
-    strcpy(_server->_fdsm[i].buffer, req);
+    my_strcpy(_server->_fdsm[i].buffer, req);
     return true;
 }
 
@@ -45,16 +46,15 @@ static bool append_buffer(connection_t *_server, uint32_t i, char *req)
     if (!new_ptr)
         return false;
     _server->_fdsm[i].buffer = new_ptr;
-    strcpy(_server->_fdsm[i].buffer + old_len, req);
+    my_strcpy(_server->_fdsm[i].buffer + old_len, req);
     return true;
 }
 
 bool complete_buffer(connection_t *_server, uint32_t *i)
 {
-    char req[1024];
+    char req[1024] = {0};
     ssize_t rd = 0;
 
-    memset(req, 0, 1024);
     rd = read(_server->_fds[*i].fd, req, 1023);
     if (rd == 0)
         return client_disconnect(_server, i);
@@ -99,7 +99,7 @@ bool pop_buffer(connection_t *_server, uint32_t i, char *input)
     new_buff = malloc(remaining_len + 1);
     if (!new_buff)
         return false;
-    strcpy(new_buff, input + w);
+    my_strcpy(new_buff, input + w);
     input = myfree(input);
     _server->_fdsm[i].buffer = new_buff;
     return true;
@@ -115,7 +115,7 @@ char *get_buffer(char *input)
     buffer = malloc(w);
     if (!buffer)
         return NULL;
-    strncpy(buffer, input, w);
+    my_strncpy(buffer, input, w);
     buffer[w - 1] = '\0';
     return buffer;
 }

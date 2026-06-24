@@ -92,6 +92,8 @@ static bool register_ia(connection_t *_server, uint32_t i,
 bool handle_request(connection_t *_server, uint32_t i,
     char **command)
 {
+    if (!command || !command[0])
+        return true;
     switch (_server->_fdsm[i].client_type){
         case CLIENT_UNDEFINED:
             pop_buffer(_server, i, _server->_fdsm[i].buffer);

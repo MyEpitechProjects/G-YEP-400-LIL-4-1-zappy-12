@@ -11,9 +11,10 @@
 
 static uint64_t now_ms(void)
 {
-    struct timeval tv;
+    struct timeval tv = {0};
 
-    gettimeofday(&tv, NULL);
+    if (gettimeofday(&tv, NULL) == -1)
+        return 0;
     return (uint64_t)(tv.tv_sec * 1000ULL + tv.tv_usec / 1000ULL);
 }
 

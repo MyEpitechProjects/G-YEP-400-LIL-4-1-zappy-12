@@ -6,14 +6,15 @@
 */
 
 #include "myserver.h"
+#include "sys.h"
 
 static void init_poller(connection_t *_server, int fd, socket_t *sock,
     fd_type_t _type)
 {
-    memset(&_server->_fds[_server->nfds], 0, sizeof(struct pollfd));
+    my_memset(&_server->_fds[_server->nfds], 0, sizeof(struct pollfd));
     _server->_fds[_server->nfds].fd = fd;
     _server->_fds[_server->nfds].events = POLLIN;
-    memset(&_server->_fdsm[_server->nfds], 0, sizeof(pollfd_meta_t));
+    my_memset(&_server->_fdsm[_server->nfds], 0, sizeof(pollfd_meta_t));
     _server->_fdsm[_server->nfds]._socket = sock;
     _server->_fdsm[_server->nfds]._type = _type;
 }
@@ -23,7 +24,7 @@ static bool create_socket(socket_t *_socket, uint32_t port,
 {
     int opt = 1;
 
-    memset(_socket, 0, sizeof(socket_t));
+    my_memset(_socket, 0, sizeof(socket_t));
     _socket->_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (_socket->_fd < 0)
         return false;
@@ -38,8 +39,8 @@ static bool create_socket(socket_t *_socket, uint32_t port,
         return false;
     }
     _socket->_addrlen = sizeof(_socket->_address);
-    listen(_socket->_fd, listenMax);
-    get_sock_port(_socket);
+    if (listen(_socket->_fd, listenMax) < 0)
+        return -1;
     return true;
 }
 
