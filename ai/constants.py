@@ -5,6 +5,10 @@
 ## Where global variable are stored
 ##
 
+# GENERAL CONSTANTS
+SUCCESS = 0
+FAILURE = 84
+
 # Incantation requirements: level_to_reach -> players + stones
 REQUIREMENTS = {
     2: {"players": 1, "linemate": 1, "deraumere": 0, "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0},

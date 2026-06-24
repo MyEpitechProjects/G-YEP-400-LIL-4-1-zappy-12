@@ -8,6 +8,8 @@
 import socket
 import sys
 
+from ai.constants import FAILURE
+
 def first_connection(port: int, name: str, machine: str):
     """Connect for the 1st time to the server."""
 
@@ -22,7 +24,7 @@ def first_connection(port: int, name: str, machine: str):
         welcome = socket_file.readline().strip()
         if not welcome:
             print("Error: Server closed the connection immediately.", file=sys.stderr)
-            sys.exit(84)
+            sys.exit(FAILURE)
         print(f"Server: {welcome}")
 
         # 2 - Send TEAM-NAME
@@ -37,7 +39,7 @@ def first_connection(port: int, name: str, machine: str):
             print(f"Error: Connection refused. Team '{name}' is full or does not exist.", file=sys.stderr)
             socket_file.close()
             client_socket.close()
-            sys.exit(84)
+            sys.exit(FAILURE)
 
         print(f"Available slots for the team: {client_num}")
 
@@ -50,4 +52,4 @@ def first_connection(port: int, name: str, machine: str):
     # Error management
     except Exception as e:
         print(f"An error occurred: {e}", file=sys.stderr)
-        sys.exit(84)
+        sys.exit(FAILURE)
