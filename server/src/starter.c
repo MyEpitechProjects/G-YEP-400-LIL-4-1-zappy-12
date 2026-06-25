@@ -107,6 +107,19 @@ bool client_disconnect(connection_t *_server, uint32_t *i)
     return true;
 }
 
+static void print_config(arguments_t *args)
+{
+    printf("Port: %u\n", args->port);
+    printf("Width: %lu\n", args->width);
+    printf("Height: %lu\n", args->height);
+    printf("Frequency: %lu\n", args->freq);
+    printf("Max clients per team: %lu\n", args->client_number);
+    printf("Teams (%lu):\n", args->team_number);
+    for (uint64_t i = 0; i < args->team_number; i++) {
+        printf("  - %s\n", args->teams_names[i]);
+    }
+}
+
 bool start_server(arguments_t *arguments, int sdf)
 {
     bool runCode = true;
