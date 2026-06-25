@@ -28,7 +28,7 @@ void *list_push(void *original, uint64_t *size, uint64_t itemSize, bool *status)
         *(status) = false;
         return original;
     }
-    memset(new + (*size * itemSize), 0, itemSize);
+    my_memset(new + (*size * itemSize), 0, itemSize);
     *(size) = (*size + 1);
     *(status) = true;
     return new;

@@ -42,3 +42,16 @@ cmd_handler_t get_command_function(invocation_t invoke, const cmd_t *functions)
     }
     return functions[counter].handler;
 }
+
+uint8_t get_command_nb_args(invocation_t invoke, const cmd_t *functions)
+{
+    uint64_t counter = 0;
+
+    for (uint8_t i = 0; functions[i].func != UNK_INVOCATION; i++){
+        counter++;
+        if (invoke != functions[i].func)
+            continue;
+        return functions[i].nb_args;
+    }
+    return functions[counter].nb_args;
+}

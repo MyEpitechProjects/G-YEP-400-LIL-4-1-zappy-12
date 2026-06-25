@@ -42,15 +42,34 @@ static bool check_commands_time(connection_t *_server, uint32_t i,
 {
     uint64_t target_time = max(0, get_command_time(_server, type));
 
-    if (type == UNIT_NONE)
+    if (type == UNIT_NONE){
+        reset_clock(&_server->_fdsm[i].clock);
+        _server->_fdsm[i].targetElapsed = 0;
         return true;
+    }
     if (_server->_fdsm[i].clock.base == 0){
         start_clock(&_server->_fdsm[i].clock);
         _server->_fdsm[i].targetElapsed = target_time;
     }
     if (get_elapsed(&_server->_fdsm[i].clock) < target_time)
         return false;
+    reset_clock(&_server->_fdsm[i].clock);
+    _server->_fdsm[i].targetElapsed = 0;
     return true;
+}
+
+static bool check_command_args(connection_t *_server, uint32_t i,
+    uint8_t nb_args, char **command)
+{
+    if ((list_len(command) - 1) == nb_args)
+        return true;
+    if (_server->_fdsm[i].client_type == CLIENT_GUI) {
+        protocol_graphic_bad_param(_server, i, NULL);
+    } else if (_server->_fdsm[i].client_type == CLIENT_IA) {
+        protocol_ia_bad_param(_server, i, NULL);
+    }
+    pop_buffer(_server, i, _server->_fdsm[i].buffer);
+    return false;
 }
 
 static bool run_command(connection_t *_server, uint32_t i, char **command,
@@ -59,11 +78,12 @@ static bool run_command(connection_t *_server, uint32_t i, char **command,
     invocation_t invoked = get_command_invoke(*command, functions);
     unit_type_t type = get_command_unit_type(invoked, functions);
     cmd_handler_t func = get_command_function(invoked, functions);
+    uint8_t nb_args = get_command_nb_args(invoked, functions);
 
-    if (!check_commands_time(_server, i, type))
+    if (!check_commands_time(_server, i, type) ||
+        (invoked != UNK_INVOCATION &&
+            !check_command_args(_server, i, nb_args, command)))
         return true;
-    reset_clock(&_server->_fdsm[i].clock);
-    _server->_fdsm[i].targetElapsed = 0;
     if (func)
         func(_server, i, command);
     pop_buffer(_server, i, _server->_fdsm[i].buffer);

@@ -17,7 +17,7 @@ static bool pop_poller_cpy(connection_t *_server, uint32_t i,
         sizeof(struct pollfd) * (_server->nfds - (i + 1)));
     my_memcpy(tmp_fdsm + i, _server->_fdsm + (i + 1),
         sizeof(pollfd_meta_t) * (_server->nfds - (i + 1)));
-    close(_server->_fds[i].fd);
+    my_close(_server->_fds[i].fd);
     _server->_fds = myfree(_server->_fds);
     _server->_fdsm = myfree(_server->_fdsm);
     return true;

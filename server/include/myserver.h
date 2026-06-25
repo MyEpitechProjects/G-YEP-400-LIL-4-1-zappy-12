@@ -67,6 +67,7 @@ typedef struct cmd_t {
     invocation_t func;
     cmd_handler_t handler;
     unit_type_t type;
+    uint8_t nb_args;
 } cmd_t;
 
 char *send_string(int fd, char *resp);
@@ -113,41 +114,44 @@ unit_type_t get_command_unit_type(invocation_t invoke, const cmd_t *functions);
 invocation_t get_command_invoke(char *command, const cmd_t *functions);
 cmd_handler_t get_command_function(invocation_t invoke,
     const cmd_t *functions);
+uint8_t get_command_nb_args(invocation_t invoke, const cmd_t *functions);
 int64_t get_timedout(connection_t *_server);
 bool client_disconnect(connection_t *_server, uint32_t *i);
 
 static const cmd_t ia_commands[] = {
-    {"Forward", SERVER_IA_FORWARD, protocol_ia_move, UNIT_FORWARD},
-    {"Left", SERVER_IA_LEFT, protocol_ia_rotate_left, UNIT_TURN},
-    {"Right", SERVER_IA_RIGHT, protocol_ia_rotate_right, UNIT_TURN},
-    {"Look", SERVER_IA_LOOK, protocol_ia_look, UNIT_LOOK},
-    {"Broadcast", SERVER_IA_BROADCAST, protocol_ia_broadcast, UNIT_BROADCAST},
+    {"Forward", SERVER_IA_FORWARD, protocol_ia_move, UNIT_FORWARD, 0},
+    {"Left", SERVER_IA_LEFT, protocol_ia_rotate_left, UNIT_TURN, 0},
+    {"Right", SERVER_IA_RIGHT, protocol_ia_rotate_right, UNIT_TURN, 0},
+    {"Look", SERVER_IA_LOOK, protocol_ia_look, UNIT_LOOK, 0},
+    {"Broadcast", SERVER_IA_BROADCAST, protocol_ia_broadcast,
+        UNIT_BROADCAST, 1},
     {"Connect_nbr", SERVER_IA_CONNECT_NBR, protocol_ia_connect_nbr,
-        UNIT_CONNECT_NBR},
-    {"Inventory", SERVER_IA_INVENTORY, protocol_ia_inventory, UNIT_INVENTORY},
-    {"Fork", SERVER_IA_FORK, protocol_ia_fork, UNIT_FORK},
-    {"Set", SERVER_IA_SET, protocol_ia_set, UNIT_SET},
-    {"Take", SERVER_IA_TAKE, protocol_ia_take, UNIT_TAKE},
+        UNIT_CONNECT_NBR, 0},
+    {"Inventory", SERVER_IA_INVENTORY, protocol_ia_inventory,
+        UNIT_INVENTORY, 0},
+    {"Fork", SERVER_IA_FORK, protocol_ia_fork, UNIT_FORK, 0},
+    {"Set", SERVER_IA_SET, protocol_ia_set, UNIT_SET, 1},
+    {"Take", SERVER_IA_TAKE, protocol_ia_take, UNIT_TAKE, 1},
     {"Incantation", SERVER_IA_INCANTATION,
-        protocol_ia_incantation, UNIT_NONE},
-    {"Eject", SERVER_IA_EJECT, protocol_ia_eject, UNIT_EJECT},
-    {NULL, UNK_INVOCATION, protocol_ko, UNIT_NONE},
+        protocol_ia_incantation, UNIT_NONE, 0},
+    {"Eject", SERVER_IA_EJECT, protocol_ia_eject, UNIT_EJECT, 1},
+    {NULL, UNK_INVOCATION, protocol_ko, UNIT_NONE, 0},
 };
 
 static const cmd_t gui_commands[] = {
-    {"sgt", CLIENT_TIME_REQ, protocol_time_unit, UNIT_NONE},
-    {"msz", CLIENT_MAP_SIZE, protocol_map_size, UNIT_NONE},
-    {"bct", CLIENT_TILE_CONTENT, protocol_tile, UNIT_NONE},
-    {"mct", CLIENT_MAP_CONTENT, protocol_map_tiles, UNIT_NONE},
-    {"tna", CLIENT_TEAMS_NAMES, protocol_teams, UNIT_NONE},
-    {"ppo", CLIENT_PLAYER_POS, protocol_player_pos, UNIT_NONE},
+    {"sgt", CLIENT_TIME_REQ, protocol_time_unit, UNIT_NONE, 0},
+    {"msz", CLIENT_MAP_SIZE, protocol_map_size, UNIT_NONE, 0},
+    {"bct", CLIENT_TILE_CONTENT, protocol_tile, UNIT_NONE, 2},
+    {"mct", CLIENT_MAP_CONTENT, protocol_map_tiles, UNIT_NONE, 0},
+    {"tna", CLIENT_TEAMS_NAMES, protocol_teams, UNIT_NONE, 0},
+    {"ppo", CLIENT_PLAYER_POS, protocol_player_pos, UNIT_NONE, 1},
     {"plv", CLIENT_PLAYER_LEVEL, protocol_player_level,
-        UNIT_NONE},
+        UNIT_NONE, 1},
     {"pin", CLIENT_PLAYER_INV, protocol_player_inventory,
-        UNIT_NONE},
+        UNIT_NONE, 1},
     {"sst", CLIENT_TIME_EDIT, protocol_time_unit_edit,
-        UNIT_NONE},
-    {NULL, UNK_INVOCATION, protocol_unk, UNIT_NONE},
+        UNIT_NONE, 1},
+    {NULL, UNK_INVOCATION, protocol_unk, UNIT_NONE, 0},
 };
 
 #endif
