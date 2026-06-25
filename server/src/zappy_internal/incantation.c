@@ -84,7 +84,6 @@ static bool check_end(connection_t *_server)
             ms = get_elapsed(&_server->zappy.gameClock);
             printf("Team \"%s\" wins in %lu seconds and %lu milliseconds\n",
                 _server->arguments->teams_names[i], ms / 1000, ms % 1000);
-
             return true;
         }
     }
