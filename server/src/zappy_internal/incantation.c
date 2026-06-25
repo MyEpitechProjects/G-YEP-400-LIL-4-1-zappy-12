@@ -73,6 +73,7 @@ static uint64_t get_level8_palyers_by_team(connection_t *_server,
 static bool check_end(connection_t *_server)
 {
     uint64_t count = 0;
+    uint64_t ms = 0;
 
     for (uint64_t i = 0; i < _server->arguments->team_number; i++){
         count = get_level8_palyers_by_team(_server,
@@ -80,6 +81,10 @@ static bool check_end(connection_t *_server)
         if (count >= WIN_PLAYER_COUNT){
             trigger_graphic_game_end(_server,
                 _server->arguments->teams_names[i]);
+            ms = get_elapsed(&_server->zappy.gameClock);
+            printf("Team \"%s\" wins in %lu seconds and %lu milliseconds\n",
+                _server->arguments->teams_names[i], ms / 1000, ms % 1000);
+
             return true;
         }
     }

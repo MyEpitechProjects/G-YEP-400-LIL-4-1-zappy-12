@@ -131,6 +131,8 @@ bool start_server(arguments_t *arguments, int sdf)
         return free_server(&_server, false);
     }
     push_poller(&_server, sdf, NULL, FD_QUIT);
+    print_config(arguments);
+    start_clock(&_server.zappy.gameClock);
     runCode = run_server(&_server);
     my_close(_server._sockets[0]._fd);
     return free_server(&_server, runCode);

@@ -72,6 +72,7 @@ typedef struct zappy_t {
     uint64_t nb_incantation;
     incantation_t *incantation;
     myclock_t foodClock;
+    myclock_t gameClock;
 } zappy_t;
 
 static const unit_t unit_values[] = {
