@@ -23,7 +23,7 @@ Si vous voulez voir le coverage, exécutez les commandes suivantes :
 
 #### Serveur en C
 ```bash
-./coverage.sh
+./coverage_server.sh
 ```
 
 #### IA en Python
