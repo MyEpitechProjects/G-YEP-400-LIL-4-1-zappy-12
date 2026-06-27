@@ -23,7 +23,7 @@ Si vous voulez voir le coverage, exécutez les commandes suivantes :
 
 #### Serveur en C
 ```bash
-gcovr --gcov-executable "llvm-cov gcov" -r . .
+./coverage.sh
 ```
 
 #### IA en Python
@@ -37,12 +37,11 @@ Si vous préférez voir le coverage en HTML, exécutez les commandes suivantes :
 
 #### Serveur en C
 ```bash
-gcovr --gcov-executable "llvm-cov gcov" -r . --html --html-details -o coverage_report
-```
+xdg-open coverage_report/index.html```
 
 #### IA en Python
 ```bash
-python3 -m coverage html
+python3 -m coverage html && xdg-open htmlcov/index.html
 ```
 
 [Retour à la documentation principale](https://github.com/EpitechPGE2-2025/G-YEP-400-LIL-4-1-zappy-12/tree/main)
