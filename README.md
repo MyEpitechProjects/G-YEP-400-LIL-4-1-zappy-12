@@ -14,7 +14,7 @@ Le projet Zappy consiste à réaliser un jeu, avec 3 parties :
 [Suivez la documentation de compilation et de lancement](docs/lancement.md).
  
 ## Documentation technique du serveur
-[Consultez la documentation du serveur](docs/server/server_doc_main.md).
+[Consultez la documentation du serveur](docs/server/architecture.md).
 
 ## Documentation technique de l'IA
 [Consultez la documentation de l'IA](docs/ai/ai_doc_main.md).
