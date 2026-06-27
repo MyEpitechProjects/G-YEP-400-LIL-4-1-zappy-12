@@ -38,8 +38,15 @@ clean:
 	$(MAKE) -C $(TESTS_DIR_SERVER) clean
 	rm -f .coverage
 	rm -rf htmlcov
+	rm -rf *.css
+	rm -rf *.html
+	rm -rf coverage_report
+	rm -rf *.gcda
+	rm -rf *.gcno
+	rm -rf *.gcov
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete
+	find . \( -name '*.gcda' -o -name '*.gcno' -o -name '*.gcov' \) -delete
 
 fclean: clean
 	$(MAKE) -C server fclean

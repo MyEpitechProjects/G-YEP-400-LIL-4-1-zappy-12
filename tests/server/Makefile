@@ -87,11 +87,11 @@ SRC_SERVER	=	$(SERVER_DIR)/src/split.c				\
 SRC_TEST_SERVER	= test_server.c
 SRC_TEST_GAME	= test_game.c
 
-CC		= gcc
+CC		= epiclang
 CFLAGS	= -Wall -Wextra -std=gnu17 \
 		  -I$(SERVER_DIR)/include	\
 		  -I../../common/include
-LDFLAGS	= -lcriterion -luuid
+LDFLAGS	= -lcriterion -luuid --coverage
 
 NAME_SERVER	= test_server_bin
 NAME_GAME	= test_game_bin
