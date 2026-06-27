@@ -115,7 +115,7 @@ s'arrête que lorsque le joueur meurt ou que la connexion est perdue.
 ## 4. Un point de conception important : pas de coordonnées partagées
 
 L'IA ne reçoit jamais sa position absolue de la part du serveur. Chaque agent estime sa position
-par **navigation à l'estime** (*dead-reckoning*) : il part de `(0, 0)` à l'apparition et cumule
+par **navigation à l'estime** (*dead-reckoning*) : il part de `(x, y)` à l'apparition et cumule
 ses déplacements `Forward` / `Right` / `Left` pour suivre où il croit se trouver.
 
 La conséquence est essentielle : **deux joueurs n'ont pas le même repère**. Les coordonnées d'un
