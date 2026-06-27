@@ -34,3 +34,9 @@ La condition de survie de base d'un Trantorien (IA) est la nourriture.
 ## 5. Régénération des Ressources sur la Carte
 La génération des ressources dépend d'une densité fixe par type (ex: 50% de chance sur une case, ou quantité globale sur la carte). 
 Toutes les 20 unités de temps, le serveur re-calcule les ressources disponibles sur l'ensemble de la carte et distribue de nouveaux items aléatoirement (linemate, thystame, food...) afin de maintenir une quantité suffisante de ressources pour les joueurs restants. Cette vérification permet d'éviter l'épuisement total des minéraux et garantit l'évolution constante des IA vers le niveau 8.
+
+---
+
+[Précédent : Architecture](architecture.md)
+
+[Retour à la documentation principale](https://github.com/EpitechPGE2-2025/G-YEP-400-LIL-4-1-zappy-12/tree/main)

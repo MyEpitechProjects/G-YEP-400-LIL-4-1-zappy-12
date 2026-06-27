@@ -49,3 +49,9 @@ Exemple :
 - Le serveur met à jour les coordonnées du joueur.
 - Le serveur invoque `gui_player_move(connection_t *srv, uint64_t player_id)`.
 - Ce trigger formate la trame `ppo n X Y O` et l'envoie en boucle à tous les sockets identifiés comme `GRAPHIC`.
+
+---
+
+[Suivant : Logique de jeu](game_logic.md)
+
+[Retour à la documentation principale](https://github.com/EpitechPGE2-2025/G-YEP-400-LIL-4-1-zappy-12/tree/main)
