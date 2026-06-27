@@ -38,6 +38,7 @@ Si vous préférez voir le coverage en HTML, exécutez les commandes suivantes :
 #### Serveur en C
 ```bash
 xdg-open coverage_report/index.html```
+```
 
 #### IA en Python
 ```bash
