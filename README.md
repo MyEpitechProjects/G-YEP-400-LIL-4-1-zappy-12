@@ -19,7 +19,7 @@ Le projet Zappy consiste à réaliser un jeu, avec 3 parties :
 ## Documentation technique de l'IA
 [Consultez la documentation de l'IA](docs/ai/ai_doc_main.md).
 
-## Documentation sur les tests unitaires
+## Documentation sur les tests unitaires, les tests de charges et les tests fonctionnels
 [Consultez la documentation sur les tests unitaires](docs/unittest.md).
 
 ## Documentation sur la CI
