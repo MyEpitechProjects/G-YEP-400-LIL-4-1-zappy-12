@@ -87,13 +87,18 @@ SRC_SERVER	=	$(SERVER_DIR)/src/split.c \
 SRC_TEST_SERVER	= test_server.c
 SRC_TEST_GAME	= test_game.c
 
-CC		= clang
+CC		= epiclang
 CFLAGS	= -Wall -Wextra -std=gnu17 -I$(SERVER_DIR)/include -I../../common/include
 COV		= --coverage
 LDFLAGS	= -lcriterion -luuid --coverage
 
 NAME_SERVER	= test_server_bin
 NAME_GAME	= test_game_bin
+
+PYTHON		= python3
+SERVER_BIN	= ../../zappy_server
+FUNCTIONAL	= functional_test.py
+LOAD		= load_test.py
 
 BUILD_DIR	= build
 OBJ_DIR		= $(BUILD_DIR)/obj
@@ -130,6 +135,13 @@ tests_run: all
 	./$(NAME_SERVER) --verbose
 	./$(NAME_GAME) --verbose
 
+server_bin:
+	$(MAKE) -C $(SERVER_DIR)
+
+functional_run: server_bin
+	$(PYTHON) $(FUNCTIONAL)
+	$(PYTHON) $(LOAD)
+
 clean:
 	$(RM) -r $(BUILD_DIR)
 	$(RM) $(NAME_SERVER) $(NAME_GAME)
@@ -139,4 +151,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re tests_run
+.PHONY: all clean fclean re tests_run server_bin functional_run

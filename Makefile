@@ -31,6 +31,9 @@ tests_run:
 	PYTHONPATH=. $(PYTHON) -m coverage run --source=ai -m unittest discover -s $(TESTS_DIR_AI) -p "test_*.py" -v
 	$(MAKE) -C $(TESTS_DIR_SERVER) tests_run
 
+integration_tests:
+	$(MAKE) -C $(TESTS_DIR_SERVER) functional_run
+
 clean:
 	$(MAKE) -C server clean
 	$(MAKE) -C $(TESTS_DIR_SERVER) clean
@@ -52,4 +55,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all tests_run clean fclean re
+.PHONY: all tests_run unit_tests integration_tests clean fclean re
