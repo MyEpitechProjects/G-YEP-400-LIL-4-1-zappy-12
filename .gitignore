@@ -10,3 +10,19 @@ zappy_server_test
 zappy_ai
 zappy_server
 zappy_gui
+
+# test & coverage artifacts
+tests/server/build/
+tests/server/test_server_bin
+tests/server/test_game_bin
+*.gcno
+*.gcda
+*.gcov
+coverage_report/
+htmlcov/
+.coverage
+
+# python
+__pycache__/
+*.pyc
+*.pyo

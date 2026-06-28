@@ -28,9 +28,7 @@ $(NAME_SERVER):
 	$(MAKE) -C server
 
 tests_run:
-	@echo "=== Running AI tests (python) ==="
 	PYTHONPATH=. $(PYTHON) -m coverage run --source=ai -m unittest discover -s $(TESTS_DIR_AI) -p "test_*.py" -v
-	@echo "=== Building & running server tests (criterion) ==="
 	$(MAKE) -C $(TESTS_DIR_SERVER) tests_run
 
 clean:
